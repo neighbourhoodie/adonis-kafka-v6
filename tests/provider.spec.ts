@@ -9,7 +9,7 @@ test.group('Kafka Provider', () => {
     const ignitor = new IgnitorFactory()
       .merge({
         rcFileContents: {
-          providers: [() => import('../providers/kafka.ts')],
+          providers: [() => import('../providers/kafka_provider.ts')],
         },
       })
       .withCoreConfig()

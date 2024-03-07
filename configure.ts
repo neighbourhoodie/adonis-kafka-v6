@@ -14,4 +14,38 @@
 
 import ConfigureCommand from '@adonisjs/core/commands/configure'
 
-export async function configure(_command: ConfigureCommand) {}
+import { stubsRoot } from './stubs/main.js'
+
+/**
+ * Configures the package
+ */
+export async function configure(command: ConfigureCommand) {
+  const codemods = await command.createCodemods()
+
+  /**
+   * Publish config file
+   */
+  await codemods.makeUsingStub(stubsRoot, 'config/kafka.stub', {})
+
+  /**
+   * Define environment variables
+   */
+  await codemods.defineEnvVariables({ ENABLED: false })
+
+  /**
+   * Define environment variables validations
+   */
+  await codemods.defineEnvValidations({
+    variables: {
+      ENABLED: `Env.schema.boolean()`,
+    },
+    leadingComment: 'Variables for configuring kafka package',
+  })
+
+  /**
+   * Register provider
+   */
+  await codemods.updateRcFile((rcFile) => {
+    rcFile.addProvider('@neighbourhoodie/adonis-kafka/kafka-provider')
+  })
+}
