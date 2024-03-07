@@ -1,7 +1,7 @@
 import { Kafka, Producer as KafkaProducer } from 'kafkajs'
 import { KafkaConfig } from '@adonisjs/core/types'
 
-class Producer {
+export class Producer {
   config: KafkaConfig
   producer: KafkaProducer
 
@@ -45,5 +45,3 @@ class Producer {
     })
   }
 }
-
-export default Producer

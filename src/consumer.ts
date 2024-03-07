@@ -1,7 +1,7 @@
 import { Kafka, Consumer as KafkaConsumer } from 'kafkajs'
 import { KafkaConfig } from '@adonisjs/core/types'
 
-class Consumer {
+export class Consumer {
   config: KafkaConfig
   topics: string[]
   events: any
@@ -83,5 +83,3 @@ class Consumer {
     })
   }
 }
-
-export default Consumer

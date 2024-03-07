@@ -1,6 +1,6 @@
 import { KafkaConfig } from '@adonisjs/core/types'
 
-function defineConfig(config = {}): KafkaConfig {
+export function defineConfig(config = {}): KafkaConfig {
   return {
     enabled: false,
     clientId: 'default-client',
@@ -17,5 +17,3 @@ function defineConfig(config = {}): KafkaConfig {
     ...config,
   }
 }
-
-export default defineConfig

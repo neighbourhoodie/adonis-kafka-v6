@@ -1,6 +1,6 @@
 import { test } from '@japa/runner'
 import { IgnitorFactory } from '@adonisjs/core/factories'
-import Kafka from '../src/index.ts'
+import { Kafka } from '../src/index.ts'
 
 const BASE_URL = new URL('./tmp/', import.meta.url)
 

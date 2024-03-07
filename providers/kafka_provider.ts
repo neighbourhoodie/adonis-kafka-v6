@@ -1,6 +1,6 @@
 import { ApplicationService, KafkaConfig } from '@adonisjs/core/types'
 
-import Kafka from '../src/index.ts'
+import { Kafka } from '../src/index.ts'
 export default class KafkaProvider {
   private app: ApplicationService
   private config: KafkaConfig

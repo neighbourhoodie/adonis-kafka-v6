@@ -2,11 +2,11 @@ import { Admin, Kafka as KafkaJs } from 'kafkajs'
 import { type Logger } from '@adonisjs/core/logger'
 import { ApplicationService, KafkaConfig, KafkaContract } from '@adonisjs/core/types'
 
-import Consumer from './consumer.ts'
-import Producer from './producer.ts'
-import defineConfig from './define_config.ts'
+import { Consumer } from './consumer.ts'
+import { Producer } from './producer.ts'
+import { defineConfig } from './define_config.ts'
 
-export default class Kafka implements KafkaContract {
+export class Kafka implements KafkaContract {
   protected application!: ApplicationService
 
   consumer!: Consumer
