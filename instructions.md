@@ -14,7 +14,6 @@ add the following code to your `env.ts` file:
 in the end the code should be similar to this:
 
 ```typescript
-
 import Env from '@ioc:Adonis/Core/Env'
 
 export default Env.rules({
@@ -31,7 +30,6 @@ export default Env.rules({
   KAFKA_PORT: Env.schema.string(),
   KAFKA_FROM_BEGINNING: Env.schema.boolean(),
 })
-
 ```
 
 inside your `.env` file, you can add the following configuration by editing with your information:

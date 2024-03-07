@@ -4,6 +4,6 @@
     "allowImportingTsExtensions": true,
     "noEmit": true,
     "rootDir": "./",
-    "outDir": "./build",
+    "outDir": "./build"
   }
 }

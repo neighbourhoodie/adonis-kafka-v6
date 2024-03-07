@@ -18,6 +18,7 @@ npm i @djpfs/kafka-adonisjs
 ```bash
 node ace configure @djpfs/kafka-adonisjs
 ```
+
 <br>
 <h2>Configuration</h2>
 
@@ -26,6 +27,7 @@ Edit the `.env` file to match your Kafka configuration.
 Edit the `config/kafka.js` file to edit the default configuration.
 <br>
 <br>
+
 <h2>Usage</h2>
 <h3>List topics</h3>
 
@@ -65,11 +67,12 @@ Create your consumer in `start/kafka.js`. Ex:
 import Kafka from '@ioc:Message/Kafka'
 
 Kafka.on('messages', (data: any, commit: any) => {
-      console.log(data)
-      // commit(false) // For error transaction
-      commit() // For successful transaction
+console.log(data)
+// commit(false) // For error transaction
+commit() // For successful transaction
 });
-```
+
+````
 
 <h3>Create Producer</h3>
 Create your producer in `app/Controllers/Http` for exemple, or in any other place. Ex:
@@ -84,7 +87,7 @@ export default class UserController {
         return Kafka.send('messages', { user_id: params.id })
     }
 }
-```
+````
 
 <h3>To another commands</h3>
 This package uses <a href="https://kafka.js.org/docs">KafkaJS</a>, so you can use all commands from KafkaJS. Ex:
@@ -101,8 +104,8 @@ Kafka.admin.describeCluster().then((result: any) => {
 
 You can find a demo project [here](https://github.com/djpfs/adonisjs-kafka-microservices-example).
 
-
 ## Based on
+
 <ul>
 <li><a href="https://kafka.js.org/">KafkaJS</a></li>
 <li><a href="https://github.com/halcyon-agile/adonis-kafka">Adonis Kafka</a></li>
