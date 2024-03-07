@@ -1,8 +1,8 @@
 import { RecordMetadata, Kafka as KafkaJs, Admin } from 'kafkajs'
-import type Consumer from '../src/consumer.ts'
-import type Producer from '../src/producer.ts'
+import type { Consumer } from './consumer.ts'
+import type { Producer } from './producer.ts'
 
-import Kafka from '../src/index.ts'
+import { Kafka } from './index.ts'
 
 declare module '@adonisjs/core/types' {
   export interface ContainerBindings {
