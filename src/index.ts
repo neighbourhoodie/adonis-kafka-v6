@@ -4,7 +4,7 @@ import { ApplicationService, KafkaConfig, KafkaContract } from '@adonisjs/core/t
 
 import Consumer from './consumer.ts'
 import Producer from './producer.ts'
-import makeKafkaConfig from './config.ts'
+import defineConfig from './define_config.ts'
 
 export default class Kafka implements KafkaContract {
   protected application!: ApplicationService
@@ -16,8 +16,8 @@ export default class Kafka implements KafkaContract {
   Logger: Logger
   admin?: Admin
 
-  constructor(Logger: Logger, env: any) {
-    this.config = makeKafkaConfig(env)
+  constructor(Logger: Logger, config: KafkaConfig) {
+    this.config = defineConfig(config)
     this.Logger = Logger
   }
 
@@ -54,7 +54,7 @@ export default class Kafka implements KafkaContract {
   }
 
   on(topic: string, callback: any) {
-    if (this.config.enabled !== 'true') return callback
+    if (this.config.enabled) return callback
     if (this.consumer === undefined) {
       this.start()
     }
@@ -62,7 +62,7 @@ export default class Kafka implements KafkaContract {
   }
 
   async send(topic: string, data: any) {
-    if (this.config.enabled !== 'true') return
+    if (this.config.enabled) return
     if (this.producer === undefined) {
       this.start()
     }

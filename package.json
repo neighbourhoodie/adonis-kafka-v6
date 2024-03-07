@@ -81,8 +81,5 @@
   "eslintConfig": {
     "extends": "@adonisjs/eslint-config/package"
   },
-  "prettier": "@adonisjs/prettier-config",
-  "dependencies": {
-
-  }
+  "prettier": "@adonisjs/prettier-config"
 }
