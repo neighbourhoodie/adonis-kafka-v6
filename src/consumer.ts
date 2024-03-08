@@ -57,6 +57,11 @@ export class Consumer {
   }
 
   async on(topic: any, callback: any) {
+    const callbackFn = this.resolveCallback(callback)
+    if (!callbackFn) {
+      throw new Error('no callback specified or cannot find your controller method')
+    }
+
     let topicArray = topic
 
     if (typeof topic === 'string') {
@@ -81,5 +86,20 @@ export class Consumer {
         fromBeginning: true,
       })
     })
+  }
+
+  resolveCallback(callback: any) {
+    if (Array.isArray(callback)) {
+      const [controller, fn] = callback
+      if (typeof controller[fn] === 'function') {
+        return controller[fn].bind(controller)
+      }
+    }
+
+    if (typeof callback === 'function') {
+      return callback
+    }
+
+    return null
   }
 }
