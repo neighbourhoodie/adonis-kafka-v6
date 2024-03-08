@@ -83,7 +83,7 @@ export class Consumer {
 
       await this.consumer.subscribe({
         topic: item,
-        fromBeginning: true,
+        fromBeginning: this.config.fromBeginning,
       })
     })
   }
