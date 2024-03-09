@@ -39,7 +39,31 @@ Kafka.on('messages', (data: any, commit: any) => {
 if(Kafka.consumer) {
   Kafka.consumer.start()
 }
+```
 
+Or create a kafka controller:
+
+```shell
+node ace make controller kafka/webhooks
+```
+ 
+
+```js
+// start/kafka.ts
+import WebhooksController from "#controllers/kafka/webhooks_controller"
+Kafka.on('messages', [WebhooksController, 'handleWebhook'])
+```
+
+```js
+// app/controllers/kafka/webhooks_controller
+import type { HttpContext } from '@adonisjs/core/http'
+import Kafka from "@neighbourhoodie/adonis-kafka/services/kafka";
+
+export default class TestsController {
+  async test({}: HttpContext) {
+    await Kafka.send('messages', { floop: new Date() })
+  }
+}
 ```
 
 #### Create Producer
