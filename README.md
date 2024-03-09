@@ -31,7 +31,7 @@ Create your consumer in `start/kafka.js`. Ex:
 import Kafka from "@neighbourhoodie/adonis-kafka/services/kafka";
 
 Kafka.on('messages', (data: any, commit: any) => {
-console.log(data)
+  console.log(data)
   // commit(false) // For error transaction
   commit() // For successful transaction
 });
@@ -51,9 +51,9 @@ import Kafka from "@neighbourhoodie/adonis-kafka/services/kafka";
 import type { HttpContext } from '@adonisjs/core/http'
 
 export default class UserController {
-    public async show({ params }: HttpContext) {
-        return Kafka.send('messages', { user_id: params.id })
-    }
+  public async show({ params }: HttpContext) {
+    return Kafka.send('messages', { user_id: params.id })
+  }
 }
 ```
 
@@ -90,7 +90,7 @@ Kafka.admin.createTopics({
 
 #### To another commands
 
-This package uses <a href="https://kafka.js.org/docs">KafkaJS</a>, so you can use all commands from KafkaJS. Ex:
+This package uses [KafkaJS](https://kafka.js.org/docs), so you can use all commands from KafkaJS. Ex:
 
 ```js
 import Kafka from "@neighbourhoodie/adonis-kafka/services/kafka";
