@@ -1,0 +1,13 @@
+{{{
+      exports({ to: app.startPath('kafka.ts') })
+}}}
+import Kafka from "@neighbourhoodie/adonis-kafka/services/kafka"
+
+Kafka.on('messages', (data: any, commit: any) => {
+  console.log('receiving', data)
+  commit()
+})
+
+if (Kafka.consumer) {
+  Kafka.consumer.start()
+}

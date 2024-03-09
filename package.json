@@ -1,7 +1,7 @@
 {
   "name": "@neighbourhoodie/adonis-kafka",
   "description": "",
-  "version": "0.0.2",
+  "version": "0.0.0",
   "main": "build/index.js",
   "engines": {
     "node": ">=18.16.0"
@@ -14,7 +14,7 @@
     ".": "./build/index.js",
     "./types": "./build/src/types.js",
     "./kafka_provider": "./build/providers/kafka_provider.js",
-    "./services/main": "./build/services/main.js"
+    "./services/kafka": "./build/services/kafka.js"
   },
   "scripts": {
     "clean": "del-cli build",
@@ -88,7 +88,7 @@
     "entry": [
       "./index.ts",
       "./src/types.ts",
-      "./services/main.ts",
+      "./services/kafka.ts",
       "./providers/kafka_provider.ts",
       "./factories/main.ts"
     ],
