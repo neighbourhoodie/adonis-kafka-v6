@@ -74,7 +74,7 @@ export class Consumer {
 
       const events = this.events[item] || []
 
-      events.push(callback)
+      events.push(callbackFn)
 
       this.events[item] = events
 
@@ -89,7 +89,8 @@ export class Consumer {
 
   resolveCallback(callback: any) {
     if (Array.isArray(callback)) {
-      const [controller, fn] = callback
+      const [ControllerClass, fn] = callback
+      const controller = new ControllerClass()
       if (typeof controller[fn] === 'function') {
         return controller[fn].bind(controller)
       }
