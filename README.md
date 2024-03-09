@@ -47,17 +47,6 @@ Or create a kafka controller:
 node ace make controller kafka/webhooks
 ```
  
-
-```js
-// start/kafka.ts
-import WebhooksController from "#controllers/kafka/webhooks_controller"
-Kafka.on('messages', [WebhooksController, 'handleWebhook'])
-
-if(Kafka.consumer) {
-  Kafka.consumer.start()
-}
-```
-
 ```js
 // app/controllers/kafka/webhooks_controller
 // import Kafka from "@neighbourhoodie/adonis-kafka/services/kafka";
@@ -67,6 +56,16 @@ export default class WebhooksController {
     console.log('received in controller', data)
     commit()
   }
+}
+```
+
+```js
+// start/kafka.ts
+import WebhooksController from "#controllers/kafka/webhooks_controller"
+Kafka.on('messages', [WebhooksController, 'handleWebhook'])
+
+if(Kafka.consumer) {
+  Kafka.consumer.start()
 }
 ```
 
