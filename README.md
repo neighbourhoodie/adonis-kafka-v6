@@ -10,13 +10,13 @@ Adonis Kafka provides an easy way to start using Kafka.
 <h2><b>Installation</b></h2>
 
 ```bash
-npm i @djpfs/kafka-adonisjs
+npm i @neighbourhoodie/kafka-adonisjs
 ```
 
 <h2>Setup</h2>
 
 ```bash
-node ace configure @djpfs/kafka-adonisjs
+node ace configure @neighbourhoodie/kafka-adonisjs
 ```
 
 <br>
@@ -33,7 +33,7 @@ Edit the `config/kafka.js` file to edit the default configuration.
 
 ```js
 // file: start/kafka.js
-import Kafka from '@ioc:Message/Kafka'
+import Kafka from "@neighbourhoodie/adonis-kafka/services/kafka";
 
 Kafka.admin.listTopics().then((topics: any[]) => {
   console.log('topics', topics);
@@ -44,7 +44,7 @@ Kafka.admin.listTopics().then((topics: any[]) => {
 
 ```js
 // file: start/kafka.js
-import Kafka from '@ioc:Message/Kafka'
+import Kafka from "@neighbourhoodie/adonis-kafka/services/kafka";
 
 Kafka.admin.createTopics({
   topics: [
@@ -64,7 +64,7 @@ Kafka.admin.createTopics({
 Create your consumer in `start/kafka.js`. Ex:
     
 ```js
-import Kafka from '@ioc:Message/Kafka'
+import Kafka from "@neighbourhoodie/adonis-kafka/services/kafka";
 
 Kafka.on('messages', (data: any, commit: any) => {
 console.log(data)
@@ -72,13 +72,16 @@ console.log(data)
 commit() // For successful transaction
 });
 
+Kafka.consumer.start()
+
+
 ````
 
 <h3>Create Producer</h3>
 Create your producer in `app/Controllers/Http` for exemple, or in any other place. Ex:
 
 ```js
-import Kafka from "@ioc:Message/Kafka";
+import Kafka from "@neighbourhoodie/adonis-kafka/services/kafka";
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 
 export default class UserController {
@@ -93,20 +96,17 @@ export default class UserController {
 This package uses <a href="https://kafka.js.org/docs">KafkaJS</a>, so you can use all commands from KafkaJS. Ex:
 
 ```js
-import Kafka from '@ioc:Message/Kafka'
+import Kafka from "@neighbourhoodie/adonis-kafka/services/kafka";
 
 Kafka.admin.describeCluster().then((result: any) => {
   console.log('result', result);
 });
 ```
 
-## Demo
-
-You can find a demo project [here](https://github.com/djpfs/adonisjs-kafka-microservices-example).
-
 ## Based on
 
 <ul>
 <li><a href="https://kafka.js.org/">KafkaJS</a></li>
-<li><a href="https://github.com/halcyon-agile/adonis-kafka">Adonis Kafka</a></li>
+<li><a href="https://github.com/djpfs/adonis-kafka">Adonis Kafka @djpfs</a></li>
+<li><a href="https://github.com/halcyon-agile/adonis-kafka">Adonis Kafka @halcyon-agile</a></li>
 </ul>
