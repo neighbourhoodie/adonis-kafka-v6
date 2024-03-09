@@ -52,16 +52,20 @@ node ace make controller kafka/webhooks
 // start/kafka.ts
 import WebhooksController from "#controllers/kafka/webhooks_controller"
 Kafka.on('messages', [WebhooksController, 'handleWebhook'])
+
+if(Kafka.consumer) {
+  Kafka.consumer.start()
+}
 ```
 
 ```js
 // app/controllers/kafka/webhooks_controller
-import type { HttpContext } from '@adonisjs/core/http'
-import Kafka from "@neighbourhoodie/adonis-kafka/services/kafka";
+// import Kafka from "@neighbourhoodie/adonis-kafka/services/kafka";
 
-export default class TestsController {
-  async test({}: HttpContext) {
-    await Kafka.send('messages', { floop: new Date() })
+export default class WebhooksController {
+  async handleWebhook(data: any, commit: any) {
+    console.log('received in controller', data)
+    commit()
   }
 }
 ```
