@@ -31,6 +31,6 @@ test.group('Kafka Provider', () => {
     await app.init()
     await app.boot()
 
-    assert.instanceOf(await app.container.make('Kafka'), Kafka)
+    assert.instanceOf(await app.container.make('kafka'), Kafka)
   })
 })

@@ -11,7 +11,7 @@ export default class KafkaProvider {
   }
 
   register() {
-    this.app.container.singleton('Kafka', async () => {
+    this.app.container.singleton('kafka', async () => {
       const logger = await this.app.container.make('logger')
       return new Kafka(logger, this.config)
     })
@@ -19,14 +19,23 @@ export default class KafkaProvider {
 
   async boot() {
     if (this.config.enabled) {
-      const kafka = await this.app.container.make('Kafka')
+      const kafka = await this.app.container.make('kafka')
       kafka.start()
+    }
+  }
+
+  async start() {
+    try {
+      const startKafka = () => import(`${this.app.startPath()}/kafka.ts`)
+      startKafka()
+    } catch (e) {
+      console.log(e)
     }
   }
 
   async shutdown() {
     if (this.config.enabled) {
-      const kafka = await this.app.container.make('Kafka')
+      const kafka = await this.app.container.make('kafka')
       kafka.disconnect()
     }
   }

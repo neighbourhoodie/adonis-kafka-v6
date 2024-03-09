@@ -6,7 +6,7 @@ import { Kafka } from './index.ts'
 
 declare module '@adonisjs/core/types' {
   export interface ContainerBindings {
-    Kafka: Kafka
+    kafka: Kafka
   }
 
   export interface KafkaConfig {

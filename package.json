@@ -1,21 +1,20 @@
 {
   "name": "@neighbourhoodie/adonis-kafka",
   "description": "",
-  "version": "0.0.0",
+  "version": "0.0.2",
+  "main": "build/index.js",
   "engines": {
     "node": ">=18.16.0"
   },
   "type": "module",
   "files": [
-    "build/src",
-    "build/providers",
-    "build/stubs",
-    "build/index.d.ts",
-    "build/index.js"
+    "build/"
   ],
   "exports": {
     ".": "./build/index.js",
-    "./types": "./build/src/types.js"
+    "./types": "./build/src/types.js",
+    "./kafka_provider": "./build/providers/kafka_provider.js",
+    "./services/main": "./build/services/main.js"
   },
   "scripts": {
     "clean": "del-cli build",
@@ -27,7 +26,7 @@
     "pretest": "npm run lint",
     "test": "c8 npm run quick:test",
     "prebuild": "npm run lint && npm run clean",
-    "build": "tsc",
+    "build": "tsup-node && tsc --emitDeclarationOnly --declaration",
     "postbuild": "npm run copy:templates",
     "release": "np",
     "version": "npm run build",
@@ -53,11 +52,14 @@
     "np": "^9.2.0",
     "prettier": "^3.1.1",
     "ts-node": "^10.9.2",
+    "tsup": "^8.0.2",
     "typescript": "^5.3.3"
   },
-  "peerDependencies": {
-    "@adonisjs/core": "^6.2.0",
+  "dependencies": {
     "kafkajs": "^2.2.4"
+  },
+  "peerDependencies": {
+    "@adonisjs/core": "^6.2.0"
   },
   "publishConfig": {
     "access": "public",
@@ -81,5 +83,20 @@
   "eslintConfig": {
     "extends": "@adonisjs/eslint-config/package"
   },
-  "prettier": "@adonisjs/prettier-config"
+  "prettier": "@adonisjs/prettier-config",
+  "tsup": {
+    "entry": [
+      "./index.ts",
+      "./src/types.ts",
+      "./services/main.ts",
+      "./providers/kafka_provider.ts",
+      "./factories/main.ts"
+    ],
+    "outDir": "./build",
+    "clean": true,
+    "format": "esm",
+    "dts": false,
+    "sourcemap": true,
+    "target": "esnext"
+  }
 }

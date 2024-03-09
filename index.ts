@@ -7,7 +7,7 @@
 |
 */
 
-export { configure } from './configure.js'
+export { configure } from './configure.ts'
 export { Kafka } from './src/index.ts'
 export { Consumer } from './src/consumer.ts'
 export { Producer } from './src/producer.ts'

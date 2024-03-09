@@ -34,6 +34,7 @@ export class Kafka implements KafkaContract {
     this.producer = new Producer(this.kafka, this.config)
 
     this.producer.start()
+    console.log('produxer up')
   }
 
   private createKafka() {
@@ -54,7 +55,10 @@ export class Kafka implements KafkaContract {
   }
 
   on(topic: string, callback: any) {
-    if (this.config.enabled) return callback
+    if (!this.config.enabled) {
+      return
+    }
+
     if (this.consumer === undefined) {
       this.start()
     }
@@ -62,11 +66,17 @@ export class Kafka implements KafkaContract {
   }
 
   async send(topic: string, data: any) {
-    if (this.config.enabled) return
+    if (!this.config.enabled) {
+      return
+    }
+
     if (this.producer === undefined) {
+      // nolt sure we ever hit this
+      console.log('kafka.send() implicit start, should not happen')
       this.start()
     }
-    return await this.producer.send(topic, data)
+
+    return this.producer.send(topic, data)
   }
 
   async disconnect() {

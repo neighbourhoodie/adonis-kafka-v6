@@ -28,12 +28,11 @@ export class Consumer {
       return new Promise<void>((resolve) => {
         callback(result, async (commit = true) => {
           if (this.config.autoCommit) {
-            return
+            return resolve()
           }
 
           if (commit) {
             const offset = (Number(message.offset) + 1).toString()
-
             await this.consumer.commitOffsets([{ topic, partition, offset }])
           }
 

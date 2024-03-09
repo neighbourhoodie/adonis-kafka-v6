@@ -25,19 +25,20 @@ export async function configure(command: ConfigureCommand) {
   /**
    * Publish config file
    */
-  await codemods.makeUsingStub(stubsRoot, 'config/kafka.stub', {})
+  console.log(stubsRoot)
+  await codemods.makeUsingStub(stubsRoot, 'stubs/config/kafka.stub', {})
 
   /**
    * Define environment variables
    */
-  await codemods.defineEnvVariables({ ENABLED: false })
+  await codemods.defineEnvVariables({ KAFKA_ENABLED: false })
 
   /**
    * Define environment variables validations
    */
   await codemods.defineEnvValidations({
     variables: {
-      ENABLED: `Env.schema.boolean()`,
+      KAFKA_ENABLED: `Env.schema.boolean()`,
     },
     leadingComment: 'Variables for configuring kafka package',
   })
@@ -46,6 +47,6 @@ export async function configure(command: ConfigureCommand) {
    * Register provider
    */
   await codemods.updateRcFile((rcFile) => {
-    rcFile.addProvider('@neighbourhoodie/adonis-kafka/kafka-provider')
+    rcFile.addProvider('@neighbourhoodie/adonis-kafka/kafka_provider')
   })
 }

@@ -16,7 +16,7 @@ export class Producer {
   }
 
   async send(topic: string, data: any) {
-    if (this.config.enabled) {
+    if (!this.config.enabled) {
       return
     }
 
