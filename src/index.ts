@@ -34,7 +34,6 @@ export class Kafka implements KafkaContract {
     this.producer = new Producer(this.kafka, this.config)
 
     this.producer.start()
-    console.log('produxer up')
   }
 
   private createKafka() {
@@ -71,7 +70,7 @@ export class Kafka implements KafkaContract {
     }
 
     if (this.producer === undefined) {
-      // nolt sure we ever hit this
+      // not sure we ever hit this
       console.log('kafka.send() implicit start, should not happen')
       this.start()
     }
