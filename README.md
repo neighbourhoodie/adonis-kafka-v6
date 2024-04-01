@@ -61,11 +61,25 @@ export default class WebhooksController {
 ```js
 // start/kafka.ts
 import WebhooksController from '#controllers/kafka/webhooks_controller'
-const consumer = Kafka.createConsumer
+const consumer = Kafka.createConsumer()
 consumer.on('messages', [WebhooksController, 'handleWebhook'])
 
 consumer.start()
 ```
+
+##### Handle Consumer Errors
+
+```js
+const consumer = Kafka.createConsumer()
+consumer.on('messages', [WebhooksController, 'handleWebhook'])
+
+consumer.registerErrorHandler('messsages', (error) => {
+  console.log('got error!', error)
+})
+consumer.start()
+```
+
+At the moment, only `JSON.parse()` errors are handled.
 
 #### Create Producer
 
