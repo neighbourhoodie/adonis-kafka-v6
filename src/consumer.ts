@@ -1,13 +1,14 @@
 import { Kafka, Consumer as KafkaConsumer } from 'kafkajs'
-import { KafkaConfig } from '@adonisjs/core/types'
+import { type ConsumerConfig, type ConsumerRunConfig } from 'kafkajs'
 
 export class Consumer {
-  config: KafkaConfig
+  config: ConsumerConfig
   topics: string[]
   events: any
   killContainer: boolean
   timeout: any = 0
   consumer: KafkaConsumer
+  consumerConfig: ConsumerRunConfig
 
   constructor(kafka: Kafka, config: any) {
     this.config = config
@@ -15,11 +16,15 @@ export class Consumer {
     this.events = {}
     this.killContainer = false
     this.timeout = null
+    this.consumerConfig = {}
 
     this.consumer = kafka.consumer({ groupId: this.config.groupId })
   }
 
-  async execute({ topic, partition, message }: { topic: string; partition: number; message: any }) {
+  async execute(
+    { topic, partition, message }: { topic: string; partition: number; message: any },
+    consumerConfig: ConsumerRunConfig
+  ) {
     const result = JSON.parse(message.value.toString())
 
     const events = this.events[topic] || []
@@ -27,7 +32,7 @@ export class Consumer {
     const promises = events.map((callback: any) => {
       return new Promise<void>((resolve) => {
         callback(result, async (commit = true) => {
-          if (this.config.autoCommit) {
+          if (consumerConfig.autoCommit) {
             return resolve()
           }
 
@@ -44,18 +49,20 @@ export class Consumer {
     await Promise.all(promises)
   }
 
-  async start() {
+  async start(consumerConfig: ConsumerRunConfig) {
+    this.consumerConfig = consumerConfig
     await this.consumer.connect()
 
     await this.consumer.run({
-      partitionsConsumedConcurrently: this.config.partitionsConcurrently,
-      autoCommit: this.config.autoCommit,
+      partitionsConsumedConcurrently: consumerConfig.partitionsConsumedConcurrently,
+      autoCommit: consumerConfig.autoCommit,
       eachMessage: async ({ topic, partition, message }: any) =>
-        this.execute({ topic, partition, message }),
+        this.execute({ topic, partition, message }, consumerConfig),
     })
   }
 
-  async on(topic: any, callback: any) {
+  // TODO: how to get TS ConsumerSubscribeTopic as the signature type used here
+  async on(topic: any, callback: any, { fromBeginning }: { fromBeginning?: boolean }) {
     const callbackFn = this.resolveCallback(callback)
     if (!callbackFn) {
       throw new Error('no callback specified or cannot find your controller method')
@@ -82,7 +89,7 @@ export class Consumer {
 
       await this.consumer.subscribe({
         topic: item,
-        fromBeginning: this.config.fromBeginning,
+        fromBeginning: fromBeginning,
       })
     })
   }

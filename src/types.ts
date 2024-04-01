@@ -1,4 +1,4 @@
-import { RecordMetadata, Kafka as KafkaJs, Admin } from 'kafkajs'
+import { Kafka as KafkaJs, Admin } from 'kafkajs'
 import type { Consumer } from './consumer.ts'
 import type { Producer } from './producer.ts'
 
@@ -16,21 +16,16 @@ declare module '@adonisjs/core/types' {
     url: string
     port: number
     urls?: string | null
-    fromBeginning: boolean
-    autoCommit: boolean
     connectionTimeout?: number
     requestTimeout?: number
-    partitionsConcurrently?: number
     logLevel: any
   }
 
   export interface KafkaContract {
     start: (...args: any[]) => void
-    on: (...args: any[]) => void
-    send: (topic: string, data: object) => Promise<RecordMetadata[] | undefined>
     disconnect: () => void
-    consumer: Consumer
-    producer: Producer
+    consumers: Consumer[]
+    producers: Producer[]
     kafka: KafkaJs
     admin?: Admin
   }

@@ -22,22 +22,21 @@ Edit the `config/kafka.js` file to edit the default configuration.
 
 ### Usage
 
-
 #### Create Consumer
 
 Create your consumer in `start/kafka.js`. Ex:
-    
+
 ```js
 import Kafka from "@neighbourhoodie/adonis-kafka/services/kafka";
 
-Kafka.on('messages', (data: any, commit: any) => {
+const consumer = Kafka.createConsumer()
+consumer.on('messages', (data: any, commit: any) => {
   console.log(data)
   // commit(false) // For error transaction
   commit() // For successful transaction
 });
 
-if(Kafka.consumer) {
-  Kafka.consumer.start()
+consumer.start()
 }
 ```
 
@@ -46,7 +45,7 @@ Or create a kafka controller:
 ```shell
 node ace make controller kafka/webhooks
 ```
- 
+
 ```js
 // app/controllers/kafka/webhooks_controller
 // import Kafka from "@neighbourhoodie/adonis-kafka/services/kafka";
@@ -61,12 +60,11 @@ export default class WebhooksController {
 
 ```js
 // start/kafka.ts
-import WebhooksController from "#controllers/kafka/webhooks_controller"
-Kafka.on('messages', [WebhooksController, 'handleWebhook'])
+import WebhooksController from '#controllers/kafka/webhooks_controller'
+const consumer = Kafka.createConsumer
+consumer.on('messages', [WebhooksController, 'handleWebhook'])
 
-if(Kafka.consumer) {
-  Kafka.consumer.start()
-}
+consumer.start()
 ```
 
 #### Create Producer
@@ -78,8 +76,11 @@ import Kafka from "@neighbourhoodie/adonis-kafka/services/kafka";
 import type { HttpContext } from '@adonisjs/core/http'
 
 export default class UserController {
+  constructor() {
+    this.producer = Kafka.createProducer()
+  }
   public async show({ params }: HttpContext) {
-    return Kafka.send('messages', { user_id: params.id })
+    return this.producer.send('messages', { user_id: params.id })
   }
 }
 ```
