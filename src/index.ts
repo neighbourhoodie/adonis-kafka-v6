@@ -11,8 +11,8 @@ import { defineConfig } from './define_config.ts'
 export class Kafka implements KafkaContract {
   protected application!: ApplicationService
 
-  consumers!: Consumer[]
-  producers!: Producer[]
+  consumers: Consumer[] = []
+  producers: Producer[] = []
   kafka!: KafkaJs
   config: KafkaConfig
   Logger: Logger
@@ -33,7 +33,7 @@ export class Kafka implements KafkaContract {
     this.createKafka()
   }
 
-  createProducer(config: ProducerConfig) {
+  createProducer(config: ProducerConfig = {}) {
     // TODO: we probably have to break out consumer/producer option config types from KafkaConfig
     const producer = new Producer(this.kafka, config, this.config.enabled)
     this.producers.push(producer)

@@ -9,7 +9,7 @@ export class Consumer {
   killContainer: boolean
   timeout: any = 0
   consumer: KafkaConsumer
-  consumerConfig: ConsumerRunConfig
+  consumerRunConfig: ConsumerRunConfig
 
   constructor(kafka: Kafka, config: any) {
     this.config = config
@@ -18,14 +18,14 @@ export class Consumer {
     this.errors = {}
     this.killContainer = false
     this.timeout = null
-    this.consumerConfig = {}
+    this.consumerRunConfig = {}
 
     this.consumer = kafka.consumer({ groupId: this.config.groupId })
   }
 
   async execute(
     { topic, partition, message }: { topic: string; partition: number; message: any },
-    consumerConfig: ConsumerRunConfig
+    consumerRunConfig: ConsumerRunConfig
   ) {
     let result: any
     try {
@@ -39,7 +39,7 @@ export class Consumer {
     const promises = events.map((callback: any) => {
       return new Promise<void>((resolve) => {
         callback(result, async (commit = true) => {
-          if (consumerConfig.autoCommit) {
+          if (consumerRunConfig.autoCommit) {
             return resolve()
           }
 
@@ -56,15 +56,15 @@ export class Consumer {
     await Promise.all(promises)
   }
 
-  async start(consumerConfig: ConsumerRunConfig) {
-    this.consumerConfig = consumerConfig
+  async start(consumerRunConfig: ConsumerRunConfig = {}) {
+    this.consumerRunConfig = consumerRunConfig
     await this.consumer.connect()
 
     await this.consumer.run({
-      partitionsConsumedConcurrently: consumerConfig.partitionsConsumedConcurrently,
-      autoCommit: consumerConfig.autoCommit,
+      partitionsConsumedConcurrently: consumerRunConfig.partitionsConsumedConcurrently,
+      autoCommit: consumerRunConfig.autoCommit,
       eachMessage: async ({ topic, partition, message }: any) =>
-        this.execute({ topic, partition, message }, consumerConfig),
+        this.execute({ topic, partition, message }, consumerRunConfig),
     })
   }
 
