@@ -29,8 +29,8 @@ Create your consumer in `start/kafka.js`. Ex:
 ```js
 import Kafka from "@neighbourhoodie/adonis-kafka/services/kafka";
 
-const consumer = Kafka.createConsumer()
-consumer.on('messages', (data: any, commit: any) => {
+const consumer = Kafka.createConsumer({ groupId: 'default'})
+consumer.on({ topic: 'messages' }, (data: any, commit: any) => {
   console.log(data)
   // commit(false) // For error transaction
   commit() // For successful transaction
@@ -61,8 +61,8 @@ export default class WebhooksController {
 ```js
 // start/kafka.ts
 import WebhooksController from '#controllers/kafka/webhooks_controller'
-const consumer = Kafka.createConsumer()
-consumer.on('messages', [WebhooksController, 'handleWebhook'])
+const consumer = Kafka.createConsumer({ groupId: 'default'})
+consumer.on({ topic: 'messages' }, [WebhooksController, 'handleWebhook'])
 
 consumer.start()
 ```
@@ -70,7 +70,7 @@ consumer.start()
 ##### Handle Consumer Errors
 
 ```js
-const consumer = Kafka.createConsumer()
+const consumer = Kafka.createConsumer({ groupId: 'default'})
 consumer.on('messages', [WebhooksController, 'handleWebhook'])
 
 consumer.registerErrorHandler('messsages', (error) => {
@@ -91,10 +91,10 @@ import type { HttpContext } from '@adonisjs/core/http'
 
 export default class UserController {
   constructor() {
-    this.producer = Kafka.createProducer()
+    Kafka.createProducer('myProducer', {} /* ProducerConfig */).start()
   }
-  public async show({ params }: HttpContext) {
-    return this.producer.send('messages', { user_id: params.id })
+  public async show({ params, kafka: { producers } }: HttpContext) {
+    return producers['myProducer'].send('messages', { user_id: params.id })
   }
 }
 ```

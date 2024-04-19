@@ -3,15 +3,24 @@
 }}}
 import Kafka from "@neighbourhoodie/adonis-kafka/services/kafka"
 
-Kafka.on('messages', (data: any, commit: any) => {
+const consumer = Kafka.createConsumer({ groupId: 'default' })
+consumer.on({ topic: 'messages' }, (data: any, commit: any) => {
   console.log('receiving in callback', data)
   commit()
 })
+consumer.start({}) // ConsumerRunConfig
 
 // node ace make controller kafka/webhooks
 // import WebhooksController from "#controllers/kafka/webhooks_controller"
-// Kafka.on('messages', [WebhooksController, 'handleWebhook'])
+// const consumer = Kafka.createConsumer({ groupId: 'default' })
+// consumer.on({ topic: 'messages' }, [WebhooksController, 'handleWebhook'])
+// consumer.start({}) // ConsumerRunConfig
 
-if (Kafka.consumer) {
-  Kafka.consumer.start()
-}
+Kafka.createProducer('foo', {} /* ProducerConfig */).start()
+Kafka.createProducer('bar', {} /* ProducerConfig */).start()
+
+// in your route, you can now do:
+// router.get('/test', ( { kafka }: HttpContext)) => {
+//   await kafka.producer['foo'].send('msg', {yay: 1})
+//   return 'sent'
+// })

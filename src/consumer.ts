@@ -1,5 +1,10 @@
 import { Kafka, Consumer as KafkaConsumer } from 'kafkajs'
-import { type ConsumerConfig, type ConsumerRunConfig } from 'kafkajs'
+import {
+  type ConsumerConfig,
+  type ConsumerRunConfig,
+  type ConsumerSubscribeTopic,
+  type EachMessagePayload,
+} from 'kafkajs'
 
 export class Consumer {
   config: ConsumerConfig
@@ -24,11 +29,14 @@ export class Consumer {
   }
 
   async execute(
-    { topic, partition, message }: { topic: string; partition: number; message: any },
+    { topic, partition, message }: EachMessagePayload,
     consumerRunConfig: ConsumerRunConfig
   ) {
     let result: any
     try {
+      if (!message.value) {
+        return
+      } // TODO Log?
       result = JSON.parse(message.value.toString())
     } catch (error) {
       this.raiseError(topic, error)
@@ -63,19 +71,22 @@ export class Consumer {
     await this.consumer.run({
       partitionsConsumedConcurrently: consumerRunConfig.partitionsConsumedConcurrently,
       autoCommit: consumerRunConfig.autoCommit,
-      eachMessage: async ({ topic, partition, message }: any) =>
-        this.execute({ topic, partition, message }, consumerRunConfig),
+      eachMessage: async ({ topic, partition, message, heartbeat, pause }: EachMessagePayload) =>
+        this.execute({ topic, partition, message, heartbeat, pause }, consumerRunConfig),
     })
   }
 
-  // TODO: how to get TS ConsumerSubscribeTopic as the signature type used here
-  async on(topic: any, callback: any, { fromBeginning }: { fromBeginning?: boolean }) {
+  async on({ topic, fromBeginning }: ConsumerSubscribeTopic, callback: any) {
     const callbackFn = this.resolveCallback(callback)
     if (!callbackFn) {
       throw new Error('no callback specified or cannot find your controller method')
     }
 
-    let topicArray = topic
+    if (topic instanceof RegExp) {
+      throw new Error('regexp topic not supported by adonis-kafka yet')
+    }
+
+    let topicArray = [topic]
 
     if (typeof topic === 'string') {
       topicArray = topic.split(',')

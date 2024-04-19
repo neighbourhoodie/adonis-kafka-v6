@@ -25,7 +25,9 @@ declare module '@adonisjs/core/types' {
     start: (...args: any[]) => void
     disconnect: () => void
     consumers: Consumer[]
-    producers: Producer[]
+    producers: {
+      [key: string]: Producer
+    }
     kafka: KafkaJs
     admin?: Admin
   }

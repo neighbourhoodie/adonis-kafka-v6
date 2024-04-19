@@ -10,6 +10,7 @@ let kafka: Kafka
  */
 await app.booted(async () => {
   kafka = await app.container.make('kafka')
+  await kafka.start()
 })
 
 export { kafka as default }

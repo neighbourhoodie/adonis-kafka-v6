@@ -14,6 +14,7 @@ export class Producer {
 
   async start() {
     await this.producer.connect()
+    return this
   }
 
   async send(topic: string, data: any) {
