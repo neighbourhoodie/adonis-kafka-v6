@@ -13,6 +13,9 @@ export class Producer {
   }
 
   async start() {
+    if (!this.enabled) {
+      return
+    }
     await this.producer.connect()
     return this
   }

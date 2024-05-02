@@ -61,7 +61,7 @@ export default class WebhooksController {
 ```js
 // start/kafka.ts
 import WebhooksController from '#controllers/kafka/webhooks_controller'
-const consumer = Kafka.createConsumer({ groupId: 'default'})
+const consumer = Kafka.createConsumer({ groupId: 'default' })
 consumer.on({ topic: 'messages' }, [WebhooksController, 'handleWebhook'])
 
 consumer.start()
@@ -70,7 +70,7 @@ consumer.start()
 ##### Handle Consumer Errors
 
 ```js
-const consumer = Kafka.createConsumer({ groupId: 'default'})
+const consumer = Kafka.createConsumer({ groupId: 'default' })
 consumer.on('messages', [WebhooksController, 'handleWebhook'])
 
 consumer.registerErrorHandler('messsages', (error) => {

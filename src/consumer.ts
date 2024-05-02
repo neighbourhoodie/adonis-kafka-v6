@@ -10,7 +10,7 @@ export class Consumer {
   config: ConsumerConfig
   topics: string[]
   events: any
-  errors: any
+  errorHandlers: any
   killContainer: boolean
   timeout: any = 0
   consumer: KafkaConsumer
@@ -20,7 +20,7 @@ export class Consumer {
     this.config = config
     this.topics = []
     this.events = {}
-    this.errors = {}
+    this.errorHandlers = {}
     this.killContainer = false
     this.timeout = null
     this.consumerRunConfig = {}
@@ -40,6 +40,7 @@ export class Consumer {
       result = JSON.parse(message.value.toString())
     } catch (error) {
       this.raiseError(topic, error)
+      return
     }
 
     const events = this.events[topic] || []
@@ -113,13 +114,17 @@ export class Consumer {
   }
 
   raiseError(topic: string, error: Error) {
-    const handlers = this.errors[topic] || []
-    handlers.forEach((handler: any) => handler(error))
+    const handlers = this.errorHandlers[topic] || []
+    handlers.forEach((handler: any) => {
+      handler(error)
+    })
   }
 
   registerErrorHandler(topic: string, callback: any) {
-    const errors = this.errors[topic] || []
-    errors.push(callback)
+    //TODO add resolveCallback
+    const handlers = this.errorHandlers[topic] || []
+    handlers.push(callback)
+    this.errorHandlers[topic] = handlers
   }
 
   resolveCallback(callback: any) {

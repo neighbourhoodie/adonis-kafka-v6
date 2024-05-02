@@ -1,8 +1,11 @@
 import { test } from '@japa/runner'
+
 import { IgnitorFactory } from '@adonisjs/core/factories'
 import { Kafka } from '../src/index.ts'
 
 const BASE_URL = new URL('./tmp/', import.meta.url)
+
+process.env['KAFKAJS_NO_PARTITIONER_WARNING'] = '1'
 
 test.group('Kafka Provider', () => {
   test('register kafka provider', async ({ assert }) => {
