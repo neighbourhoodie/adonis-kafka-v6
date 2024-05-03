@@ -1,4 +1,6 @@
 import { Admin, Kafka as KafkaJs } from 'kafkajs'
+import { type ProducerConfig, type ConsumerConfig } from 'kafkajs'
+
 import { type Logger } from '@adonisjs/core/logger'
 import { ApplicationService, KafkaConfig, KafkaContract } from '@adonisjs/core/types'
 
@@ -9,8 +11,10 @@ import { defineConfig } from './define_config.ts'
 export class Kafka implements KafkaContract {
   protected application!: ApplicationService
 
-  consumer!: Consumer
-  producer!: Producer
+  consumers: Consumer[]
+  producers: {
+    [key: string]: Producer
+  }
   kafka!: KafkaJs
   config: KafkaConfig
   Logger: Logger
@@ -19,6 +23,8 @@ export class Kafka implements KafkaContract {
   constructor(Logger: Logger, config: KafkaConfig) {
     this.config = defineConfig(config)
     this.Logger = Logger
+    this.consumers = []
+    this.producers = {}
   }
 
   async start() {
@@ -29,11 +35,22 @@ export class Kafka implements KafkaContract {
     }
 
     this.createKafka()
+  }
 
-    this.consumer = new Consumer(this.kafka, this.config)
-    this.producer = new Producer(this.kafka, this.config)
+  createProducer(name: string, config: ProducerConfig) {
+    // TODO: we probably have to break out consumer/producer option config types from KafkaConfig
+    if (this.producers[name]) {
+      throw new Error(`producer with name '${name}' already exists`)
+    }
+    const producer = new Producer(this.kafka, config, this.config.enabled)
+    this.producers[name] = producer
+    return producer
+  }
 
-    this.producer.start()
+  createConsumer(config: ConsumerConfig) {
+    const consumer = new Consumer(this.kafka, config)
+    this.consumers.push(consumer)
+    return consumer
   }
 
   private createKafka() {
@@ -53,32 +70,9 @@ export class Kafka implements KafkaContract {
     }
   }
 
-  on(topic: string, callback: any) {
-    if (!this.config.enabled) {
-      return
-    }
-
-    if (this.consumer === undefined) {
-      this.start()
-    }
-    this.consumer.on(topic, callback)
-  }
-
-  async send(topic: string, data: any) {
-    if (!this.config.enabled) {
-      return
-    }
-
-    if (this.producer === undefined) {
-      // not sure we ever hit this
-      console.log('kafka.send() implicit start, should not happen')
-      this.start()
-    }
-
-    return this.producer.send(topic, data)
-  }
-
   async disconnect() {
-    await this.consumer.consumer.disconnect()
+    for await (let consumer of this.consumers) {
+      await consumer.consumer.disconnect()
+    }
   }
 }

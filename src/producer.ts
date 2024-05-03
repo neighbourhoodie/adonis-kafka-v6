@@ -1,22 +1,27 @@
-import { Kafka, Producer as KafkaProducer } from 'kafkajs'
-import { KafkaConfig } from '@adonisjs/core/types'
+import { Kafka, Producer as KafkaProducer, type ProducerConfig } from 'kafkajs'
 
 export class Producer {
-  config: KafkaConfig
+  config: ProducerConfig
   producer: KafkaProducer
+  enabled: boolean
 
-  constructor(kafka: Kafka, config: KafkaConfig) {
+  constructor(kafka: Kafka, config: ProducerConfig, enabled: boolean) {
     this.config = config
+    this.enabled = enabled
 
     this.producer = kafka.producer()
   }
 
   async start() {
+    if (!this.enabled) {
+      return
+    }
     await this.producer.connect()
+    return this
   }
 
   async send(topic: string, data: any) {
-    if (!this.config.enabled) {
+    if (!this.enabled) {
       return
     }
 

@@ -1,33 +1,54 @@
 import { Kafka, Consumer as KafkaConsumer } from 'kafkajs'
-import { KafkaConfig } from '@adonisjs/core/types'
+import {
+  type ConsumerConfig,
+  type ConsumerRunConfig,
+  type ConsumerSubscribeTopic,
+  type EachMessagePayload,
+} from 'kafkajs'
 
 export class Consumer {
-  config: KafkaConfig
+  config: ConsumerConfig
   topics: string[]
   events: any
+  errorHandlers: any
   killContainer: boolean
   timeout: any = 0
   consumer: KafkaConsumer
+  consumerRunConfig: ConsumerRunConfig
 
   constructor(kafka: Kafka, config: any) {
     this.config = config
     this.topics = []
     this.events = {}
+    this.errorHandlers = {}
     this.killContainer = false
     this.timeout = null
+    this.consumerRunConfig = {}
 
     this.consumer = kafka.consumer({ groupId: this.config.groupId })
   }
 
-  async execute({ topic, partition, message }: { topic: string; partition: number; message: any }) {
-    const result = JSON.parse(message.value.toString())
+  async execute(
+    { topic, partition, message }: EachMessagePayload,
+    consumerRunConfig: ConsumerRunConfig
+  ) {
+    let result: any
+    try {
+      if (!message.value) {
+        return
+      } // TODO Log?
+      result = JSON.parse(message.value.toString())
+    } catch (error) {
+      this.raiseError(topic, error)
+      return
+    }
 
     const events = this.events[topic] || []
 
     const promises = events.map((callback: any) => {
       return new Promise<void>((resolve) => {
         callback(result, async (commit = true) => {
-          if (this.config.autoCommit) {
+          if (consumerRunConfig.autoCommit) {
             return resolve()
           }
 
@@ -44,24 +65,29 @@ export class Consumer {
     await Promise.all(promises)
   }
 
-  async start() {
+  async start(consumerRunConfig: ConsumerRunConfig = {}) {
+    this.consumerRunConfig = consumerRunConfig
     await this.consumer.connect()
 
     await this.consumer.run({
-      partitionsConsumedConcurrently: this.config.partitionsConcurrently,
-      autoCommit: this.config.autoCommit,
-      eachMessage: async ({ topic, partition, message }: any) =>
-        this.execute({ topic, partition, message }),
+      partitionsConsumedConcurrently: consumerRunConfig.partitionsConsumedConcurrently,
+      autoCommit: consumerRunConfig.autoCommit,
+      eachMessage: async ({ topic, partition, message, heartbeat, pause }: EachMessagePayload) =>
+        this.execute({ topic, partition, message, heartbeat, pause }, consumerRunConfig),
     })
   }
 
-  async on(topic: any, callback: any) {
+  async on({ topic, fromBeginning }: ConsumerSubscribeTopic, callback: any) {
     const callbackFn = this.resolveCallback(callback)
     if (!callbackFn) {
       throw new Error('no callback specified or cannot find your controller method')
     }
 
-    let topicArray = topic
+    if (topic instanceof RegExp) {
+      throw new Error('regexp topic not supported by adonis-kafka yet')
+    }
+
+    let topicArray = [topic]
 
     if (typeof topic === 'string') {
       topicArray = topic.split(',')
@@ -82,9 +108,23 @@ export class Consumer {
 
       await this.consumer.subscribe({
         topic: item,
-        fromBeginning: this.config.fromBeginning,
+        fromBeginning: fromBeginning,
       })
     })
+  }
+
+  raiseError(topic: string, error: Error) {
+    const handlers = this.errorHandlers[topic] || []
+    handlers.forEach((handler: any) => {
+      handler(error)
+    })
+  }
+
+  registerErrorHandler(topic: string, callback: any) {
+    //TODO add resolveCallback
+    const handlers = this.errorHandlers[topic] || []
+    handlers.push(callback)
+    this.errorHandlers[topic] = handlers
   }
 
   resolveCallback(callback: any) {
