@@ -31,7 +31,7 @@ export async function configure(command: ConfigureCommand) {
   /**
    * Define environment variables
    */
-  await codemods.defineEnvVariables({ KAFKA_ENABLED: false })
+  await codemods.defineEnvVariables({ KAFKA_ENABLED: true })
 
   /**
    * Define environment variables validations
