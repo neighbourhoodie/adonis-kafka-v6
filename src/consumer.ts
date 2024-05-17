@@ -28,10 +28,8 @@ export class Consumer {
     this.consumer = kafka.consumer({ groupId: this.config.groupId })
   }
 
-  async execute(
-    { topic, partition, message }: EachMessagePayload,
-    consumerRunConfig: ConsumerRunConfig
-  ) {
+  async execute(payload: EachMessagePayload, consumerRunConfig: ConsumerRunConfig) {
+    const { topic, partition, message } = payload
     let result: any
     try {
       if (!message.value) {
@@ -47,18 +45,22 @@ export class Consumer {
 
     const promises = events.map((callback: any) => {
       return new Promise<void>((resolve) => {
-        callback(result, async (commit = true) => {
-          if (consumerRunConfig.autoCommit) {
-            return resolve()
-          }
+        callback(
+          result,
+          async (commit = true) => {
+            if (consumerRunConfig.autoCommit) {
+              return resolve()
+            }
 
-          if (commit) {
-            const offset = (Number(message.offset) + 1).toString()
-            await this.consumer.commitOffsets([{ topic, partition, offset }])
-          }
+            if (commit) {
+              const offset = (Number(message.offset) + 1).toString()
+              await this.consumer.commitOffsets([{ topic, partition, offset }])
+            }
 
-          resolve()
-        })
+            resolve()
+          },
+          payload
+        )
       })
     })
 

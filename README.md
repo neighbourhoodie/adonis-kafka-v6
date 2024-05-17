@@ -79,6 +79,25 @@ consumer.registerErrorHandler('messsages', (error) => {
 consumer.start()
 ```
 
+##### Use Heartbeat or Pause
+
+```js
+import Kafka from "@neighbourhoodie/adonis-kafka/services/kafka";
+
+const consumer = Kafka.createConsumer({ groupId: 'default'})
+consumer.on({ topic: 'messages' }, (data: any, commit: any, { heartbeat, pause }) => {
+  console.log(data)
+  // I might need some extra time processing my message
+  await heartbeat()
+  // or pause processing for a mo
+  // await pause()
+  commit() // For successful transaction
+});
+
+consumer.start()
+}
+```
+
 At the moment, only `JSON.parse()` errors are handled.
 
 #### Create Producer
