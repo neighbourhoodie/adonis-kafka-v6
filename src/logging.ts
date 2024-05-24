@@ -30,6 +30,6 @@ export const toKafkaLogLevel = (level: Level) => {
     case 'warn':
       return logLevel.WARN
     default:
-      return logLevel.INFO
+      return logLevel.NOTHING
   }
 }
