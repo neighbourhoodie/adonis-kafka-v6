@@ -5,13 +5,13 @@ Adonis Kafka provides an easy way to start using Kafka.
 ### Installation
 
 ```bash
-npm i @neighbourhoodie/kafka-adonisjs
+npm i @neighbourhoodie/adonis-kafka
 ```
 
 ### Setup
 
 ```bash
-node ace configure @neighbourhoodie/kafka-adonisjs
+node ace configure @neighbourhoodie/adonis-kafka
 ```
 
 ### Configuration
