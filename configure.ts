@@ -31,14 +31,43 @@ export async function configure(command: ConfigureCommand) {
   /**
    * Define environment variables
    */
-  await codemods.defineEnvVariables({ KAFKA_ENABLED: true })
+  await codemods.defineEnvVariables({
+    KAFKA_BROKERS: 'localhost:9092',
+    KAFKA_CLIENT_ID: '// optional',
+    KAFKA_GROUP_ID: '// optional',
+    KAFKA_CONNECTION_TIMEOUT: '// optional',
+    KAFKA_REQUEST_TIMEOUT: '// optional',
+    KAFKA_LOG_LEVEL: '// optional',
+  })
 
   /**
    * Define environment variables validations
    */
   await codemods.defineEnvValidations({
     variables: {
-      KAFKA_ENABLED: `Env.schema.boolean()`,
+      KAFKA_BROKERS: `(_name, value) => {
+        if (!value) {
+          throw new Error('Value for $KAFKA_BROKERS is required')
+        }
+
+        const urls = value.split(',')
+        const valid = urls.every((url) => {
+          return URL.canParse(url)
+        })
+
+        if (!valid) {
+          throw new Error('Invalid URLs in $KAFKA_BROKERS')
+        }
+
+        // Temporary whilst @neighbourhoodie/adonis-kafka internally doesn't support
+        // being passed a string or array of URLs
+        return urls.join(',')
+      }`,
+      KAFKA_CLIENT_ID: `Env.schema.string.optional()`,
+      KAFKA_GROUP_ID: `Env.schema.string.optional()`,
+      KAFKA_CONNECTION_TIMEOUT: `Env.schema.number.optional()`,
+      KAFKA_REQUEST_TIMEOUT: `Env.schema.number.optional()`,
+      KAFKA_LOG_LEVEL: `Env.schema.enum.optional(['fatal', 'error', 'warn', 'info', 'debug', 'trace'])`,
     },
     leadingComment: 'Variables for configuring kafka package',
   })

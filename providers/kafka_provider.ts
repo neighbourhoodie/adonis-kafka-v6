@@ -1,19 +1,6 @@
 import { ApplicationService, KafkaConfig } from '@adonisjs/core/types'
 
 import { Kafka } from '../src/index.ts'
-import { Producer } from '../src/producer.ts'
-
-import { HttpContext } from '@adonisjs/core/http'
-
-declare module '@adonisjs/core/http' {
-  export interface HttpContext {
-    kafka: {
-      producers: {
-        [key: string]: Producer
-      }
-    }
-  }
-}
 
 export default class KafkaProvider {
   private app: ApplicationService
@@ -32,18 +19,8 @@ export default class KafkaProvider {
   }
 
   async boot() {
-    if (this.config.enabled) {
-      const kafka = await this.app.container.make('kafka')
-      await kafka.start()
-
-      HttpContext.getter(
-        'kafka',
-        function (this: Request) {
-          return kafka
-        },
-        true
-      )
-    }
+    const kafka = await this.app.container.make('kafka')
+    await kafka.start()
   }
 
   async start() {
@@ -56,9 +33,7 @@ export default class KafkaProvider {
   }
 
   async shutdown() {
-    if (this.config.enabled) {
-      const kafka = await this.app.container.make('kafka')
-      kafka.disconnect()
-    }
+    const kafka = await this.app.container.make('kafka')
+    kafka.disconnect()
   }
 }

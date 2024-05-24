@@ -5,15 +5,12 @@ import env from '#start/env'
 import app from '@adonisjs/core/services/app'
 
 const kafkaConfig = {
-  enabled: env.get('KAFKA_ENABLED', false),
-  clientId: env.get('KAFKA_CLIENT_ID', 'default-client'),
-  groupId: env.get('KAFKA_GROUP_ID', 'default-group'),
-  url: env.get('KAFKA_URL', 'localhost'),
-  port: env.get('KAFKA_PORT', 9092),
-  urls: env.get('KAFKA_URLS', null),
+  brokers: env.get('KAFKA_BROKERS', 'localhost:9092'),
+  clientId: env.get('KAFKA_CLIENT_ID', 'ccs-webhooks'),
+  groupId: env.get('KAFKA_GROUP_ID', 'ccs-webhooks'),
   connectionTimeout: env.get('KAFKA_CONNECTION_TIMEOUT', 3000),
   requestTimeout: env.get('KAFKA_REQUEST_TIMEOUT', 60000),
-  logLevel: env.get('KAFKA_LOG_LEVEL', 1),
+  logLevel: env.get('KAFKA_LOG_LEVEL', 'info'),
 }
 
 export default kafkaConfig

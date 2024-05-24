@@ -14,9 +14,9 @@ test.group('Kafka Producer', (group) => {
     const kafkajs = new Kafkajs({
       brokers: ['asd'],
     })
-    const enabled = true
+
     const producer = sinon.spy(kafkajs, 'producer')
-    new Producer(kafkajs, {}, enabled)
+    new Producer(kafkajs, {})
     assert.isTrue(producer.called)
   })
 
@@ -25,8 +25,7 @@ test.group('Kafka Producer', (group) => {
       brokers: ['asd'],
     })
 
-    const enabled = true
-    const producer = new Producer(kafkajs, {}, enabled)
+    const producer = new Producer(kafkajs, {})
     const connect = sinon.replace(producer.producer, 'connect', sinon.fake())
     await producer.start()
 
@@ -34,40 +33,12 @@ test.group('Kafka Producer', (group) => {
     assert.equal(connect.callCount, 1)
   })
 
-  test('start disabled', async ({ assert }) => {
-    const kafkajs = new Kafkajs({
-      brokers: ['asd'],
-    })
-
-    const enabled = false
-    const producer = new Producer(kafkajs, {}, enabled)
-    const connect = sinon.replace(producer.producer, 'connect', sinon.fake())
-    await producer.start()
-
-    assert.isFalse(connect.called)
-  })
-
-  test('send disabled', async ({ assert }) => {
-    const kafkajs = new Kafkajs({
-      brokers: ['asd'],
-    })
-
-    const enabled = false
-    const producer = new Producer(kafkajs, {}, enabled)
-    const send = sinon.replace(producer.producer, 'send', sinon.fake())
-
-    const result = await producer.send('foo', 'bar')
-    assert.isUndefined(result)
-    assert.isFalse(send.called)
-  })
-
   test('send wrong type', async ({ assert }) => {
     const kafkajs = new Kafkajs({
       brokers: ['asd'],
     })
 
-    const enabled = true
-    const producer = new Producer(kafkajs, {}, enabled)
+    const producer = new Producer(kafkajs, {})
     const send = sinon.replace(producer.producer, 'send', sinon.fake())
 
     assert.rejects(async () => producer.send('foo', 123))
@@ -79,8 +50,7 @@ test.group('Kafka Producer', (group) => {
       brokers: ['asd'],
     })
 
-    const enabled = true
-    const producer = new Producer(kafkajs, {}, enabled)
+    const producer = new Producer(kafkajs, {})
     const send = sinon.replace(producer.producer, 'send', sinon.fake())
 
     await producer.send('foo', { bar: 'baz' })
@@ -92,8 +62,7 @@ test.group('Kafka Producer', (group) => {
       brokers: ['asd'],
     })
 
-    const enabled = true
-    const producer = new Producer(kafkajs, {}, enabled)
+    const producer = new Producer(kafkajs, {})
     const send = sinon.replace(producer.producer, 'send', sinon.fake())
 
     await producer.send('foo', { value: 123 })
@@ -105,8 +74,7 @@ test.group('Kafka Producer', (group) => {
       brokers: ['asd'],
     })
 
-    const enabled = true
-    const producer = new Producer(kafkajs, {}, enabled)
+    const producer = new Producer(kafkajs, {})
     const send = sinon.replace(producer.producer, 'send', sinon.fake())
 
     await producer.send('foo', [{ value: 123 }, { bar: 'baz' }])

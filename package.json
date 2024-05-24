@@ -39,6 +39,7 @@
     "@adonisjs/assembler": "^7.0.0",
     "@adonisjs/core": "^6.2.0",
     "@adonisjs/eslint-config": "^1.2.1",
+    "@adonisjs/logger": "^6.0.3",
     "@adonisjs/prettier-config": "^1.2.1",
     "@adonisjs/tsconfig": "^1.2.1",
     "@japa/assert": "^2.1.0",
@@ -61,7 +62,8 @@
     "kafkajs": "^2.2.4"
   },
   "peerDependencies": {
-    "@adonisjs/core": "^6.2.0"
+    "@adonisjs/core": "^6.2.0",
+    "@adonisjs/logger": "^6.0.3"
   },
   "publishConfig": {
     "access": "public",
