@@ -12,6 +12,7 @@
   ],
   "exports": {
     ".": "./build/index.js",
+    "./env": "./build/src/env/index.js",
     "./types": "./build/src/types.js",
     "./kafka_provider": "./build/providers/kafka_provider.js",
     "./services/kafka": "./build/services/kafka.js"
@@ -91,6 +92,7 @@
   "tsup": {
     "entry": [
       "./index.ts",
+      "./src/env/index.ts",
       "./src/types.ts",
       "./services/kafka.ts",
       "./providers/kafka_provider.ts",

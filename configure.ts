@@ -33,36 +33,29 @@ export async function configure(command: ConfigureCommand) {
    */
   await codemods.defineEnvVariables({
     KAFKA_BROKERS: 'localhost:9092',
-    KAFKA_CLIENT_ID: '// optional',
-    KAFKA_GROUP_ID: '// optional',
-    KAFKA_CONNECTION_TIMEOUT: '// optional',
-    KAFKA_REQUEST_TIMEOUT: '// optional',
-    KAFKA_LOG_LEVEL: '// optional',
   })
+
+  const project = await codemods.getTsMorphProject()
+  if (project) {
+    const envValidationsFile = await project.getSourceFileOrThrow(command.app.startPath('env.ts'))
+    const kafkaEnvModule = `${command.name}/env`
+
+    if (!envValidationsFile.getImportDeclaration(kafkaEnvModule)) {
+      envValidationsFile.addImportDeclaration({
+        namedImports: ['KafkaEnv'],
+        moduleSpecifier: kafkaEnvModule,
+      })
+    }
+
+    await envValidationsFile.emit()
+  }
 
   /**
    * Define environment variables validations
    */
   await codemods.defineEnvValidations({
     variables: {
-      KAFKA_BROKERS: `(_name, value) => {
-        if (!value) {
-          throw new Error('Value for $KAFKA_BROKERS is required')
-        }
-
-        const urls = value.split(',')
-        const valid = urls.every((url) => {
-          return URL.canParse(url)
-        })
-
-        if (!valid) {
-          throw new Error('Invalid URLs in $KAFKA_BROKERS')
-        }
-
-        // Temporary whilst @neighbourhoodie/adonis-kafka internally doesn't support
-        // being passed a string or array of URLs
-        return urls.join(',')
-      }`,
+      KAFKA_BROKERS: `KafkaEnv.schema.brokers()`,
       KAFKA_CLIENT_ID: `Env.schema.string.optional()`,
       KAFKA_GROUP_ID: `Env.schema.string.optional()`,
       KAFKA_CONNECTION_TIMEOUT: `Env.schema.number.optional()`,
@@ -76,6 +69,6 @@ export async function configure(command: ConfigureCommand) {
    * Register provider
    */
   await codemods.updateRcFile((rcFile) => {
-    rcFile.addProvider('@neighbourhoodie/adonis-kafka/kafka_provider')
+    rcFile.addProvider(`${command.name}/kafka_provider`)
   })
 }
