@@ -35,6 +35,14 @@ declare module '@adonisjs/core/types' {
 
 export type ConsumerRunConfig = Omit<KafkaConsumerRunConfig, 'eachMessage' | 'eachBatch'>
 
+export type ConsumerPayload = {
+  key: string | null
+  value: any
+  headers: Record<string, string>
+}
+
+export type ConsumerCommitCallback = (commit: boolean) => Promise<void>
+
 export interface SendMessage extends KafkaMessage {
   value: any
 }
