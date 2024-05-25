@@ -1,10 +1,13 @@
 import {
   ProducerConfig as KafkaProducerConfig,
   ConsumerConfig as KafkaConsumerConfig,
+  ConsumerRunConfig as KafkaConsumerRunConfig,
   Message as KafkaMessage,
 } from 'kafkajs'
+
 import type { Level } from '@adonisjs/logger/types'
-import type { Consumer } from './consumer.ts'
+
+import type { ConsumerGroup } from './consumer.ts'
 import type { Producer } from './producer.ts'
 
 import { Kafka } from './index.ts'
@@ -26,7 +29,7 @@ declare module '@adonisjs/core/types' {
     start: (...args: any[]) => void
     disconnect: () => void
     createProducer(name: string, config: KafkaProducerConfig): Producer
-    createConsumer(config: KafkaConsumerConfig, runConfig: ConsumerRunConfig): Consumer
+    createConsumerGroup(config: KafkaConsumerConfig, runConfig: ConsumerRunConfig): ConsumerGroup
   }
 }
 

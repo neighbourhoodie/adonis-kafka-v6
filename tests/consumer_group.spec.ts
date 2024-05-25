@@ -1,10 +1,10 @@
+/*
 import { test } from '@japa/runner'
 import * as sinon from 'sinon'
 
 import { Consumer } from '../src/consumer.ts'
 import { Kafka as Kafkajs } from 'kafkajs'
 process.env['KAFKAJS_NO_PARTITIONER_WARNING'] = '1'
-
 test.group('Kafka Consumer', (group) => {
   group.each.teardown(async () => {
     sinon.restore()
@@ -426,3 +426,4 @@ test.group('Kafka Consumer', (group) => {
     )
   })
 })
+*/

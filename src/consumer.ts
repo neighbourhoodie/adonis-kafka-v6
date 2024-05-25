@@ -6,7 +6,8 @@ import {
   type EachMessagePayload,
 } from 'kafkajs'
 
-export class Consumer {
+
+export class ConsumerGroup {
   config: ConsumerConfig
   topics: string[]
   events: any
