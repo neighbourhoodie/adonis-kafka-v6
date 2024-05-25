@@ -1,6 +1,7 @@
 import {
   ProducerConfig as KafkaProducerConfig,
   ConsumerConfig as KafkaConsumerConfig,
+  Message as KafkaMessage,
 } from 'kafkajs'
 import type { Level } from '@adonisjs/logger/types'
 import type { Consumer } from './consumer.ts'
@@ -28,4 +29,9 @@ declare module '@adonisjs/core/types' {
     createConsumer(config: KafkaConsumerConfig): Consumer
   }
 }
+
+export interface SendMessage extends KafkaMessage {
+  value: any
+}
+
 export * from 'kafkajs'

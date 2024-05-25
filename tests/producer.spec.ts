@@ -3,6 +3,7 @@ import * as sinon from 'sinon'
 
 import { Producer } from '../src/producer.ts'
 import { Kafka as Kafkajs } from 'kafkajs'
+import { SendMessage } from '../src/types.ts'
 process.env['KAFKAJS_NO_PARTITIONER_WARNING'] = '1'
 
 test.group('Kafka Producer', (group) => {
@@ -41,7 +42,7 @@ test.group('Kafka Producer', (group) => {
     const producer = new Producer(kafkajs, {})
     const send = sinon.replace(producer.producer, 'send', sinon.fake())
 
-    assert.rejects(async () => producer.send('foo', 123))
+    assert.rejects(async () => producer.send('foo', 123 as unknown as SendMessage))
     assert.isFalse(send.called)
   })
 
@@ -53,7 +54,7 @@ test.group('Kafka Producer', (group) => {
     const producer = new Producer(kafkajs, {})
     const send = sinon.replace(producer.producer, 'send', sinon.fake())
 
-    await producer.send('foo', { bar: 'baz' })
+    await producer.send('foo', { value: { bar: 'baz' } })
     assert.isTrue(send.calledWith({ topic: 'foo', messages: [{ value: '{"bar":"baz"}' }] }))
   })
 
@@ -77,9 +78,13 @@ test.group('Kafka Producer', (group) => {
     const producer = new Producer(kafkajs, {})
     const send = sinon.replace(producer.producer, 'send', sinon.fake())
 
-    await producer.send('foo', [{ value: 123 }, { bar: 'baz' }])
+    await producer.sendMany('foo', [{ value: 123 }, { value: { bar: 'baz' } }])
+
     assert.isTrue(
-      send.calledWith({ topic: 'foo', messages: [{ value: '123' }, { value: '{"bar":"baz"}' }] })
+      send.calledWith({
+        topic: 'foo',
+        messages: [{ value: '123' }, { value: '{"bar":"baz"}' }],
+      })
     )
   })
 })

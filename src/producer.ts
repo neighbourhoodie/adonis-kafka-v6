@@ -1,12 +1,12 @@
 import { Kafka, Producer as KafkaProducer, type ProducerConfig } from 'kafkajs'
 
+import { SendMessage } from './types.ts'
+
 export class Producer {
-  config: ProducerConfig
   producer: KafkaProducer
 
   constructor(kafka: Kafka, config: ProducerConfig) {
-    this.config = config
-    this.producer = kafka.producer()
+    this.producer = kafka.producer(config)
   }
 
   async start() {
@@ -14,19 +14,19 @@ export class Producer {
     return this
   }
 
-  async send(topic: string, data: any) {
-    if (typeof data !== 'object') {
-      throw new Error('You need send a json object in data argument')
+  async send(topic: string, message: SendMessage) {
+    if (typeof message.value !== 'string') {
+      message.value = JSON.stringify(message.value)
     }
 
-    let messages = Array.isArray(data) ? data : [data]
-    messages = messages.map((message) => {
-      if (!message.value) {
-        message = {
-          value: JSON.stringify(message),
-        }
-      }
+    return await this.producer.send({
+      topic,
+      messages: [message],
+    })
+  }
 
+  async sendMany(topic: string, messages: SendMessage[]) {
+    messages = messages.map((message) => {
       if (typeof message.value !== 'string') {
         message.value = JSON.stringify(message.value)
       }
