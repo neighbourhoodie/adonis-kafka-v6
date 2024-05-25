@@ -70,5 +70,6 @@ export async function configure(command: ConfigureCommand) {
    */
   await codemods.updateRcFile((rcFile) => {
     rcFile.addProvider(`${command.name}/kafka_provider`)
+    rcFile.addPreloadFile(`#start/kafka`)
   })
 }

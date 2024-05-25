@@ -4,17 +4,16 @@ import { Kafka } from '../src/index.ts'
 
 export default class KafkaProvider {
   private app: ApplicationService
-  private config: KafkaConfig
 
   constructor(app: ApplicationService) {
     this.app = app
-    this.config = this.app.config.get<KafkaConfig>('kafka')
   }
 
   register() {
     this.app.container.singleton('kafka', async () => {
       const logger = await this.app.container.make('logger')
-      return new Kafka(logger, this.config)
+      const config = this.app.config.get<KafkaConfig>('kafka')
+      return new Kafka(logger, config)
     })
   }
 
@@ -23,17 +22,8 @@ export default class KafkaProvider {
     await kafka.start()
   }
 
-  async start() {
-    try {
-      const startKafka = () => import(`${this.app.startPath()}/kafka.ts`)
-      startKafka()
-    } catch (e) {
-      console.log(e)
-    }
-  }
-
   async shutdown() {
     const kafka = await this.app.container.make('kafka')
-    kafka.disconnect()
+    await kafka.disconnect()
   }
 }

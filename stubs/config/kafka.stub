@@ -2,15 +2,14 @@
       exports({ to: app.configPath('kafka.ts') })
 }}}
 import env from '#start/env'
-import app from '@adonisjs/core/services/app'
 
 const kafkaConfig = {
   brokers: env.get('KAFKA_BROKERS', 'localhost:9092'),
-  clientId: env.get('KAFKA_CLIENT_ID', 'ccs-webhooks'),
-  groupId: env.get('KAFKA_GROUP_ID', 'ccs-webhooks'),
+  clientId: env.get('KAFKA_CLIENT_ID'),
   connectionTimeout: env.get('KAFKA_CONNECTION_TIMEOUT', 3000),
   requestTimeout: env.get('KAFKA_REQUEST_TIMEOUT', 60000),
-  logLevel: env.get('KAFKA_LOG_LEVEL', 'info'),
+  logLevel: env.get('KAFKA_LOG_LEVEL', env.get('LOG_LEVEL')),
 }
 
 export default kafkaConfig
+

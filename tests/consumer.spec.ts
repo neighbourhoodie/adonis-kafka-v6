@@ -125,6 +125,46 @@ test.group('Kafka Consumer', (group) => {
     assert.isTrue(handler3.calledWith(error3))
   })
 
+  test('eachMessage', async ({ assert }) => {
+    const kafkajs = new Kafkajs({
+      brokers: ['asd'],
+    })
+
+    const consumer = new Consumer(kafkajs, { groupId: 'test' })
+    // const callback = sinon.stub().callsArg(1)
+    // consumer.events['test'] = [callback]
+
+    const runConfig = {
+      autoCommit: true,
+    }
+
+    consumer.consumerRunConfig = runConfig
+
+    const execute = sinon.spy(consumer, 'execute')
+
+    const message = {
+      value: Buffer.from('{"foo":1}'),
+      key: null,
+      timestamp: '2024-05-03',
+      attributes: 0,
+      offset: '1',
+      headers: {},
+    }
+
+    const payload = {
+      topic: 'test',
+      partition: 1,
+      message,
+      heartbeat: sinon.spy(),
+      pause: sinon.spy(),
+    }
+
+    await consumer.eachMessage(payload)
+
+    assert.isTrue(execute.called)
+    assert.isTrue(execute.calledWith(payload, runConfig))
+  })
+
   // technically an internal method, but still
   test('execute', async ({ assert }) => {
     const kafkajs = new Kafkajs({

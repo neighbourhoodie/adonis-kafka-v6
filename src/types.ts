@@ -16,7 +16,6 @@ declare module '@adonisjs/core/types' {
   export interface KafkaConfig {
     brokers?: string | string[]
     clientId?: string
-    groupId?: string
     connectionTimeout?: number
     requestTimeout?: number
     logLevel: Level

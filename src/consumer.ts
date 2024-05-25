@@ -41,7 +41,11 @@ export class Consumer {
       return
     }
 
-    const events = this.events[topic] || []
+    const events = this.events[topic]
+
+    if (!events || !events.length) {
+      return
+    }
 
     const promises = events.map((callback: any) => {
       return new Promise<void>((resolve) => {
@@ -69,14 +73,19 @@ export class Consumer {
 
   async start(consumerRunConfig: ConsumerRunConfig = {}) {
     this.consumerRunConfig = consumerRunConfig
+
     await this.consumer.connect()
 
     await this.consumer.run({
       partitionsConsumedConcurrently: consumerRunConfig.partitionsConsumedConcurrently,
       autoCommit: consumerRunConfig.autoCommit,
-      eachMessage: async ({ topic, partition, message, heartbeat, pause }: EachMessagePayload) =>
-        this.execute({ topic, partition, message, heartbeat, pause }, consumerRunConfig),
+      eachMessage: this.eachMessage,
     })
+  }
+
+  // TODO: Have execute just use this.consumerRunConfig directly
+  async eachMessage(payload: EachMessagePayload): Promise<void> {
+    await this.execute(payload, this.consumerRunConfig)
   }
 
   async on({ topic, fromBeginning }: ConsumerSubscribeTopic, callback: any) {

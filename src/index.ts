@@ -45,10 +45,7 @@ export class Kafka implements KafkaContract {
   }
 
   createConsumer(config: ConsumerConfig) {
-    const consumer = new Consumer(this.#kafka, {
-      ...config,
-      groupId: config.groupId ?? this.#config.groupId ?? 'local',
-    })
+    const consumer = new Consumer(this.#kafka, config)
 
     this.#consumers.push(consumer)
 
@@ -76,9 +73,11 @@ export class Kafka implements KafkaContract {
       logCreator: (logLevel: KafkaLogLevel) => {
         this.#logger.level = toAdonisLoggerLevel(logLevel)
 
-        return ({ level, log, ...rest }) => {
+        return ({ namespace, level, label: _label, log }) => {
           const { message, timestamp, logger, ...extra } = log
-          this.#logger[toAdonisLoggerLevel(level)]({ ...rest, ...extra }, log.message)
+          this.#logger
+            .child({ module: `kafka.${namespace}` })
+            [toAdonisLoggerLevel(level)]({ ...extra }, log.message)
         }
       },
     })
