@@ -1,11 +1,12 @@
 import { Kafka, Consumer as KafkaConsumer } from 'kafkajs'
-import {
-  type ConsumerConfig,
-  type ConsumerRunConfig,
-  type ConsumerSubscribeTopic,
-  type EachMessagePayload,
-} from 'kafkajs'
+import { type ConsumerConfig, type EachMessagePayload } from 'kafkajs'
 
+import type {
+  ConsumerCallback,
+  ConsumerClassMethod,
+  ConsumerRunConfig,
+  ConsumerSubscribeTopic,
+} from './types.ts'
 
 export class ConsumerGroup {
   config: ConsumerConfig
@@ -29,42 +30,58 @@ export class ConsumerGroup {
     this.consumer = kafka.consumer(this.config)
   }
 
-  async execute(payload: EachMessagePayload) {
-    const { topic, partition, message } = payload
+  async eachMessage(payload: EachMessagePayload): Promise<void> {
     let result: any
     try {
-      if (!message.value) {
+      if (!payload.message.value) {
         return
       } // TODO Log?
-      result = JSON.parse(message.value.toString())
+      result = JSON.parse(payload.message.value.toString())
     } catch (error) {
-      this.raiseError(topic, error)
+      this.raiseError(payload.topic, error)
       return
     }
 
-    const events = this.events[topic]
+    const events = this.events[payload.topic]
 
     if (!events || !events.length) {
       return
     }
 
-    const promises = events.map((callback: any) => {
-      return new Promise<void>((resolve) => {
-        callback(
-          result,
-          async (commit = true) => {
-            if (this.consumerRunConfig.autoCommit) {
-              return resolve()
-            }
-            if (commit) {
-              const offset = (Number(message.offset) + 1).toString()
-              await this.consumer.commitOffsets([{ topic, partition, offset }])
-            }
+    const key = payload.message.key?.toString('utf-8') ?? null
 
-            resolve()
-          },
-          payload
-        )
+    const headers: Record<string, string> = {}
+    if (payload.message.headers !== undefined) {
+      const payloadHeaders = payload.message.headers
+
+      Object.keys(payloadHeaders).forEach((headerName) => {
+        const header = payloadHeaders[headerName]
+        if (!header) return
+
+        headers[headerName] = header.toString('utf-8')
+      }, {})
+    }
+
+    const promises = events.map((callback: ConsumerCallback) => {
+      return new Promise<void>((resolve) => {
+        callback({ key, value: result, headers }, async (commit = false) => {
+          if (this.consumerRunConfig.autoCommit) {
+            return resolve()
+          }
+
+          if (commit) {
+            const offset = (Number(payload.message.offset) + 1).toString()
+            await this.consumer.commitOffsets([
+              {
+                topic: payload.topic,
+                partition: payload.partition,
+                offset,
+              },
+            ])
+          }
+
+          resolve()
+        })
       })
     })
 
@@ -80,31 +97,21 @@ export class ConsumerGroup {
     })
   }
 
-  async eachMessage(payload: EachMessagePayload): Promise<void> {
-    await this.execute(payload)
-  }
-
-  async on({ topic, fromBeginning }: ConsumerSubscribeTopic, callback: any) {
+  async on({ topic, fromBeginning }: ConsumerSubscribeTopic, callback: ConsumerCallback) {
     const callbackFn = this.resolveCallback(callback)
     if (!callbackFn) {
       throw new Error('no callback specified or cannot find your controller method')
     }
 
-    if (topic instanceof RegExp) {
-      throw new Error('regexp topic not supported by adonis-kafka yet')
-    }
+    console.info({ topic, callback })
 
     let topicArray = [topic]
 
     if (typeof topic === 'string') {
-      topicArray = topic.split(',')
+      topicArray = topic.split(',').filter((item) => !!item)
     }
 
-    topicArray.forEach(async (item: any) => {
-      if (!item) {
-        return
-      }
-
+    topicArray.forEach(async (item) => {
       const events = this.events[item] || []
 
       events.push(callbackFn)
@@ -112,11 +119,11 @@ export class ConsumerGroup {
       this.events[item] = events
 
       this.topics.push(item)
+    })
 
-      await this.consumer.subscribe({
-        topic: item,
-        fromBeginning: fromBeginning,
-      })
+    await this.consumer.subscribe({
+      topics: topicArray,
+      fromBeginning: fromBeginning,
     })
   }
 
@@ -134,12 +141,12 @@ export class ConsumerGroup {
     this.errorHandlers[topic] = handlers
   }
 
-  resolveCallback(callback: any) {
+  resolveCallback(callback: ConsumerCallback | ConsumerClassMethod) {
     if (Array.isArray(callback)) {
       const [ControllerClass, fn] = callback
       const controller = new ControllerClass()
       if (typeof controller[fn] === 'function') {
-        return controller[fn].bind(controller)
+        return controller[fn].bind(controller) as ConsumerCallback
       }
     }
 
