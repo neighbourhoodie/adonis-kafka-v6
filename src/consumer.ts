@@ -7,6 +7,8 @@ import type {
   ConsumerRunConfig,
   ConsumerSubscribeTopic,
 } from './types.ts'
+import type { Consumer } from './_consumer.ts'
+import { Constructor } from '@adonisjs/core/types/container'
 
 export class ConsumerGroup {
   config: ConsumerConfig
@@ -125,6 +127,17 @@ export class ConsumerGroup {
       topics: topicArray,
       fromBeginning: fromBeginning,
     })
+  }
+
+  async subscribe(Consumer: Constructor<Consumer>) {
+    const consumer = new Consumer()
+    await this.on(
+      {
+        topic: consumer.topic,
+        fromBeginning: consumer.fromBeginning,
+      },
+      consumer.onMessage.bind(consumer)
+    )
   }
 
   raiseError(topic: string, error: Error) {
