@@ -8,6 +8,7 @@ import { Consumer } from './consumer.ts'
 import { Producer } from './producer.ts'
 import { defineConfig } from './define_config.ts'
 import { type KafkaLogLevel, toAdonisLoggerLevel, toKafkaLogLevel } from './logging.ts'
+import { ConsumerRunConfig } from './types.ts'
 
 export class Kafka implements KafkaContract {
   protected application!: ApplicationService
@@ -44,12 +45,20 @@ export class Kafka implements KafkaContract {
     return producer
   }
 
-  createConsumer(config: ConsumerConfig) {
-    const consumer = new Consumer(this.#kafka, config)
+  createConsumer(config: ConsumerConfig, runConfig?: ConsumerRunConfig) {
+    const consumer = new Consumer(this.#kafka, config, runConfig ?? {})
 
     this.#consumers.push(consumer)
 
     return consumer
+  }
+
+  get producers() {
+    return this.#producers
+  }
+
+  get consumers() {
+    return this.#consumers
   }
 
   private getBrokers() {

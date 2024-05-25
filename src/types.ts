@@ -26,9 +26,11 @@ declare module '@adonisjs/core/types' {
     start: (...args: any[]) => void
     disconnect: () => void
     createProducer(name: string, config: KafkaProducerConfig): Producer
-    createConsumer(config: KafkaConsumerConfig): Consumer
+    createConsumer(config: KafkaConsumerConfig, runConfig: ConsumerRunConfig): Consumer
   }
 }
+
+export type ConsumerRunConfig = Omit<KafkaConsumerRunConfig, 'eachMessage' | 'eachBatch'>
 
 export interface SendMessage extends KafkaMessage {
   value: any

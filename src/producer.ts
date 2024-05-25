@@ -4,13 +4,18 @@ import { SendMessage } from './types.ts'
 
 export class Producer {
   producer: KafkaProducer
+  #started: boolean
 
   constructor(kafka: Kafka, config: ProducerConfig) {
     this.producer = kafka.producer(config)
+    this.#started = false
   }
 
   async start() {
-    await this.producer.connect()
+    if (!this.#started) {
+      await this.producer.connect()
+    }
+
     return this
   }
 

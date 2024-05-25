@@ -16,16 +16,16 @@ export class Consumer {
   consumer: KafkaConsumer
   consumerRunConfig: ConsumerRunConfig
 
-  constructor(kafka: Kafka, config: any) {
+  constructor(kafka: Kafka, config: ConsumerConfig, consumerRunConfig: ConsumerRunConfig) {
     this.config = config
     this.topics = []
     this.events = {}
     this.errorHandlers = {}
     this.killContainer = false
     this.timeout = null
-    this.consumerRunConfig = {}
+    this.consumerRunConfig = consumerRunConfig
 
-    this.consumer = kafka.consumer({ groupId: this.config.groupId })
+    this.consumer = kafka.consumer(this.config)
   }
 
   async execute(payload: EachMessagePayload) {
@@ -70,15 +70,12 @@ export class Consumer {
     await Promise.all(promises)
   }
 
-  async start(consumerRunConfig: ConsumerRunConfig = {}) {
-    this.consumerRunConfig = consumerRunConfig
-
+  async start() {
     await this.consumer.connect()
 
     await this.consumer.run({
-      partitionsConsumedConcurrently: consumerRunConfig.partitionsConsumedConcurrently,
-      autoCommit: consumerRunConfig.autoCommit,
-      eachMessage: this.eachMessage,
+      ...this.consumerRunConfig,
+      eachMessage: this.eachMessage.bind(this),
     })
   }
 
