@@ -11,6 +11,7 @@ import type { ConsumerGroup } from './consumer.ts'
 import type { Producer } from './producer.ts'
 
 import { Kafka } from './index.ts'
+import { Constructor } from '@adonisjs/core/types/container'
 
 declare module '@adonisjs/core/types' {
   export interface ContainerBindings {
@@ -35,6 +36,8 @@ declare module '@adonisjs/core/types' {
 
 export type ConsumerRunConfig = Omit<KafkaConsumerRunConfig, 'eachMessage' | 'eachBatch'>
 
+export type ConsumerSubscribeTopic = { topic: string; fromBeginning?: boolean }
+export type ConsumerSubscribeTopics = { topics: string[]; fromBeginning?: boolean }
 export type ConsumerPayload = {
   key: string | null
   value: any
@@ -42,6 +45,12 @@ export type ConsumerPayload = {
 }
 
 export type ConsumerCommitCallback = (commit: boolean) => Promise<void>
+
+export type ConsumerClassMethod = [Constructor<any>, string]
+export type ConsumerCallback = (
+  payload: ConsumerPayload,
+  commit: ConsumerCommitCallback
+) => Promise<void>
 
 export interface SendMessage extends KafkaMessage {
   value: any

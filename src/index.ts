@@ -83,10 +83,12 @@ export class Kafka implements KafkaContract {
         this.#logger.level = toAdonisLoggerLevel(logLevel)
 
         return ({ namespace, level, label: _label, log }) => {
-          const { message, timestamp, logger, ...extra } = log
-          this.#logger
-            .child({ module: `kafka.${namespace}` })
-            [toAdonisLoggerLevel(level)]({ ...extra }, log.message)
+          const { message, timestamp, logger: someLogger, ...extra } = log
+          const logger = namespace
+            ? this.#logger.child({ module: `kafka.${namespace}` })
+            : this.#logger
+
+          logger[toAdonisLoggerLevel(level)]({ ...extra, someLogger }, log.message)
         }
       },
     })
