@@ -1,8 +1,9 @@
 import { ApplicationService, KafkaConfig } from '@adonisjs/core/types'
+import { ContainerProviderContract } from '@adonisjs/core/types/app'
 
 import { Kafka } from '../src/index.ts'
 
-export default class KafkaProvider {
+export default class KafkaProvider implements ContainerProviderContract {
   private app: ApplicationService
 
   constructor(app: ApplicationService) {
@@ -20,6 +21,22 @@ export default class KafkaProvider {
   async boot() {
     const kafka = await this.app.container.make('kafka')
     await kafka.start()
+  }
+
+  // Has to be ready to make use of preloads:
+  async ready() {
+    const logger = await this.app.container.make('logger')
+    const kafka = await this.app.container.make('kafka')
+
+    logger.debug({ consumers: kafka.consumers, producers: kafka.producers })
+
+    for (const producer in kafka.producers) {
+      await kafka.producers[producer].start()
+    }
+
+    for (const consumer of kafka.consumers) {
+      await consumer.start()
+    }
   }
 
   async shutdown() {
