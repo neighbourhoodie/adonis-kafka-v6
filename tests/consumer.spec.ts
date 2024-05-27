@@ -237,7 +237,10 @@ test.group('Kafka Consumer', (group) => {
       { topic: 'test', partition: 1, message, heartbeat: sinon.spy(), pause: sinon.spy() },
       runConfig
     )
-    assert.isTrue(callback.called)
+    assert.equal(callback.args[0][0], 123)
+    assert.equal(callback.args[0][2].topic, 'test')
+    assert.isFunction(callback.args[0][2].heartbeat)
+    assert.isFunction(callback.args[0][2].pause)
     assert.isTrue(commitOffset.called)
     assert.isTrue(
       commitOffset.calledWith([
@@ -248,6 +251,38 @@ test.group('Kafka Consumer', (group) => {
         },
       ])
     )
+  })
+
+  // technically an internal method, but still
+  test('execute with heartbeat & pause', async ({ assert }) => {
+    const kafkajs = new Kafkajs({
+      brokers: ['asd'],
+    })
+
+    const consumer = new Consumer(kafkajs, { groupId: 'test' })
+    sinon.replace(consumer.consumer, 'commitOffsets', sinon.spy())
+    const callback = sinon.stub().callsFake(async function (_result, commit, payload) {
+      await payload.heartbeat()
+      await payload.pause()
+      await commit(true)
+    })
+    consumer.events['test'] = [callback]
+    const runConfig = {
+      autoCommit: true,
+    }
+    const message = {
+      value: Buffer.from('123'),
+      key: null,
+      timestamp: '2024-05-03',
+      attributes: 0,
+      offset: '1',
+      headers: {},
+    }
+    const heartbeat = sinon.spy()
+    const pause = sinon.spy()
+    await consumer.execute({ topic: 'test', partition: 1, message, heartbeat, pause }, runConfig)
+    assert.isTrue(heartbeat.called)
+    assert.isTrue(pause.called)
   })
 
   test('on wrong fn', async ({ assert }) => {
