@@ -1,4 +1,9 @@
-import { Kafka as KafkaJs, Admin } from 'kafkajs'
+import {
+  ProducerConfig as KafkaProducerConfig,
+  ConsumerConfig as KafkaConsumerConfig,
+  Message as KafkaMessage,
+} from 'kafkajs'
+import type { Level } from '@adonisjs/logger/types'
 import type { Consumer } from './consumer.ts'
 import type { Producer } from './producer.ts'
 
@@ -10,26 +15,23 @@ declare module '@adonisjs/core/types' {
   }
 
   export interface KafkaConfig {
-    enabled: boolean
-    clientId: string
-    groupId: string
-    url: string
-    port: number
-    urls?: string | null
+    brokers?: string | string[]
+    clientId?: string
     connectionTimeout?: number
     requestTimeout?: number
-    logLevel: any
+    logLevel: Level
   }
 
   export interface KafkaContract {
     start: (...args: any[]) => void
     disconnect: () => void
-    consumers: Consumer[]
-    producers: {
-      [key: string]: Producer
-    }
-    kafka: KafkaJs
-    admin?: Admin
+    createProducer(name: string, config: KafkaProducerConfig): Producer
+    createConsumer(config: KafkaConsumerConfig): Consumer
   }
 }
+
+export interface SendMessage extends KafkaMessage {
+  value: any
+}
+
 export * from 'kafkajs'

@@ -2,6 +2,9 @@ import { test } from '@japa/runner'
 
 import { IgnitorFactory } from '@adonisjs/core/factories'
 import { Kafka } from '../src/index.ts'
+import sinon from 'sinon'
+import { Producer } from '../src/producer.ts'
+import { Consumer } from '../src/consumer.ts'
 
 const BASE_URL = new URL('./tmp/', import.meta.url)
 
@@ -21,7 +24,6 @@ test.group('Kafka Provider', () => {
         config: {
           kafka: {
             groupId: '123',
-            url: 'localhost:1234',
             clientId: '123',
             brokers: ['localhost:1232'],
             enabled: false,
@@ -34,6 +36,25 @@ test.group('Kafka Provider', () => {
     await app.init()
     await app.boot()
 
-    assert.instanceOf(await app.container.make('kafka'), Kafka)
+    assert.isTrue(app.container.hasBinding('kafka'))
+
+    const kafka = await app.container.make('kafka')
+    assert.instanceOf(kafka, Kafka)
+
+    const { default: kafkaService } = await import('../services/kafka.ts')
+    assert.instanceOf(kafkaService, Kafka)
+
+    const producer = kafkaService.createProducer('test', {})
+    assert.instanceOf(producer, Producer)
+
+    const consumer = kafkaService.createConsumer({
+      groupId: 'test',
+    })
+    assert.instanceOf(consumer, Consumer)
+
+    const disconnect = sinon.replace(kafka, 'disconnect', sinon.fake())
+
+    await app.terminate()
+    assert.isTrue(disconnect.called)
   })
 })

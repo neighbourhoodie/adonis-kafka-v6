@@ -31,14 +31,36 @@ export async function configure(command: ConfigureCommand) {
   /**
    * Define environment variables
    */
-  await codemods.defineEnvVariables({ KAFKA_ENABLED: true })
+  await codemods.defineEnvVariables({
+    KAFKA_BROKERS: 'localhost:9092',
+  })
+
+  const project = await codemods.getTsMorphProject()
+  if (project) {
+    const envValidationsFile = await project.getSourceFileOrThrow(command.app.startPath('env.ts'))
+    const kafkaEnvModule = `${command.name}/env`
+
+    if (!envValidationsFile.getImportDeclaration(kafkaEnvModule)) {
+      envValidationsFile.addImportDeclaration({
+        namedImports: ['KafkaEnv'],
+        moduleSpecifier: kafkaEnvModule,
+      })
+    }
+
+    await envValidationsFile.emit()
+  }
 
   /**
    * Define environment variables validations
    */
   await codemods.defineEnvValidations({
     variables: {
-      KAFKA_ENABLED: `Env.schema.boolean()`,
+      KAFKA_BROKERS: `KafkaEnv.schema.brokers()`,
+      KAFKA_CLIENT_ID: `Env.schema.string.optional()`,
+      KAFKA_GROUP_ID: `Env.schema.string.optional()`,
+      KAFKA_CONNECTION_TIMEOUT: `Env.schema.number.optional()`,
+      KAFKA_REQUEST_TIMEOUT: `Env.schema.number.optional()`,
+      KAFKA_LOG_LEVEL: `Env.schema.enum.optional(['fatal', 'error', 'warn', 'info', 'debug', 'trace'])`,
     },
     leadingComment: 'Variables for configuring kafka package',
   })
@@ -47,6 +69,7 @@ export async function configure(command: ConfigureCommand) {
    * Register provider
    */
   await codemods.updateRcFile((rcFile) => {
-    rcFile.addProvider('@neighbourhoodie/adonis-kafka/kafka_provider')
+    rcFile.addProvider(`${command.name}/kafka_provider`)
+    rcFile.addPreloadFile(`#start/kafka`)
   })
 }

@@ -2,14 +2,11 @@ import { KafkaConfig } from '@adonisjs/core/types'
 
 export function defineConfig(config = {}): KafkaConfig {
   return {
-    enabled: false,
-    clientId: 'default-client',
-    groupId: 'default-group',
-    url: 'localhost',
-    port: 9092,
+    brokers: 'localhost:9092',
+    clientId: 'local',
     connectionTimeout: 3000,
     requestTimeout: 60000,
-    logLevel: 1,
+    logLevel: 'info',
     // Overwrite default config values if another one is provided
     ...config,
   }
