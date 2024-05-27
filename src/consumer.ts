@@ -28,7 +28,7 @@ export class Consumer {
     this.consumer = kafka.consumer({ groupId: this.config.groupId })
   }
 
-  async execute(payload: EachMessagePayload, consumerRunConfig: ConsumerRunConfig) {
+  async execute(payload: EachMessagePayload) {
     const { topic, partition, message } = payload
     let result: any
     try {
@@ -52,10 +52,9 @@ export class Consumer {
         callback(
           result,
           async (commit = true) => {
-            if (consumerRunConfig.autoCommit) {
+            if (this.consumerRunConfig.autoCommit) {
               return resolve()
             }
-
             if (commit) {
               const offset = (Number(message.offset) + 1).toString()
               await this.consumer.commitOffsets([{ topic, partition, offset }])
@@ -83,9 +82,8 @@ export class Consumer {
     })
   }
 
-  // TODO: Have execute just use this.consumerRunConfig directly
   async eachMessage(payload: EachMessagePayload): Promise<void> {
-    await this.execute(payload, this.consumerRunConfig)
+    await this.execute(payload)
   }
 
   async on({ topic, fromBeginning }: ConsumerSubscribeTopic, callback: any) {
