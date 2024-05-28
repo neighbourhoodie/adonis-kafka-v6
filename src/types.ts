@@ -3,6 +3,7 @@ import type {
   ProducerConfig as KafkaProducerConfig,
   ConsumerRunConfig as KafkaConsumerRunConfig,
   Message as KafkaMessage,
+  EachMessagePayload as KafkaEachMessagePayload,
 } from 'kafkajs'
 import type { Level } from '@adonisjs/logger/types'
 import type { Consumer } from './consumer.ts'
@@ -17,6 +18,15 @@ export type ConsumerGroupConfig = KafkaConsumerConfig &
 
 export type ConsumerSubscribeTopic = { topic: string; fromBeginning?: boolean }
 export type ConsumerSubscribeTopics = { topics: string[]; fromBeginning?: boolean }
+
+export type ConsumerPayload = KafkaMessage
+export type ConsumerCommitCallback = (commit: boolean) => Promise<void>
+export type ConsumerCallback = (
+  payload: ConsumerPayload,
+  commit: ConsumerCommitCallback,
+  heartbeat: KafkaEachMessagePayload['heartbeat'],
+  pause: KafkaEachMessagePayload['pause']
+) => Promise<void>
 
 export type ConsumerErrorHandler = (error: Error) => void
 
