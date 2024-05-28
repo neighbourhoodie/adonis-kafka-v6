@@ -8,8 +8,6 @@ export class Consumer {
   topics: string[]
   events: any
   errorHandlers: any
-  killContainer: boolean
-  timeout: any = 0
   consumer: KafkaConsumer
 
   constructor(kafka: Kafka, config: ConsumerGroupConfig) {
@@ -17,8 +15,6 @@ export class Consumer {
     this.topics = []
     this.events = {}
     this.errorHandlers = {}
-    this.killContainer = false
-    this.timeout = null
 
     this.consumer = kafka.consumer(this.config)
   }
