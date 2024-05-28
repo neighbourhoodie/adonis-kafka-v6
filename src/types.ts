@@ -4,7 +4,11 @@ import type {
   ConsumerRunConfig as KafkaConsumerRunConfig,
   Message as KafkaMessage,
   EachMessagePayload as KafkaEachMessagePayload,
+  SASLOptions,
 } from 'kafkajs'
+
+import type tls from 'node:tls'
+
 import type { Level } from '@adonisjs/logger/types'
 import type { Consumer } from './consumer.ts'
 import type { Producer } from './producer.ts'
@@ -37,9 +41,15 @@ declare module '@adonisjs/core/types' {
 
   export interface KafkaConfig {
     brokers?: string | string[]
+    ssl?: tls.ConnectionOptions | boolean
+    sasl?: SASLOptions
     clientId?: string
-    connectionTimeout?: number
-    requestTimeout?: number
+    timeouts?: {
+      connection?: number
+      authentication?: number
+      reauthentication?: number
+      request?: number
+    }
     logLevel: Level
   }
 
