@@ -131,10 +131,7 @@ test.group('Kafka Consumer', (group) => {
     })
 
     const consumer = new Consumer(kafkajs, { groupId: 'test', autoCommit: false })
-    // const callback = sinon.stub().callsArg(1)
-    // consumer.events['test'] = [callback]
-
-    const execute = sinon.spy(consumer, 'execute')
+    const eachMessage = sinon.spy(consumer, 'eachMessage')
 
     const message = {
       value: Buffer.from('{"foo":1}'),
@@ -155,12 +152,12 @@ test.group('Kafka Consumer', (group) => {
 
     await consumer.eachMessage(payload)
 
-    assert.isTrue(execute.called)
-    assert.isTrue(execute.calledWith(payload))
+    assert.isTrue(eachMessage.called)
+    assert.isTrue(eachMessage.calledWith(payload))
   })
 
   // technically an internal method, but still
-  test('execute', async ({ assert }) => {
+  test('eachMessage via events', async ({ assert }) => {
     const kafkajs = new Kafkajs({
       brokers: ['asd'],
     })
@@ -178,7 +175,7 @@ test.group('Kafka Consumer', (group) => {
       offset: '1',
       headers: {},
     }
-    await consumer.execute({
+    await consumer.eachMessage({
       topic: 'test',
       partition: 1,
       message,
@@ -206,7 +203,7 @@ test.group('Kafka Consumer', (group) => {
       offset: '1',
       headers: {},
     }
-    const result = await consumer.execute({
+    const result = await consumer.eachMessage({
       topic: 'test',
       partition: 1,
       message,
@@ -237,7 +234,7 @@ test.group('Kafka Consumer', (group) => {
       offset: '1',
       headers: {},
     }
-    const result = await consumer.execute({
+    const result = await consumer.eachMessage({
       topic: 'test',
       partition: 1,
       message,
@@ -269,7 +266,7 @@ test.group('Kafka Consumer', (group) => {
       offset: '1',
       headers: {},
     }
-    await consumer.execute({
+    await consumer.eachMessage({
       topic: 'test',
       partition: 1,
       message,
@@ -314,7 +311,7 @@ test.group('Kafka Consumer', (group) => {
     }
     const heartbeat = sinon.spy()
     const pause = sinon.spy()
-    await consumer.execute({ topic: 'test', partition: 1, message, heartbeat, pause })
+    await consumer.eachMessage({ topic: 'test', partition: 1, message, heartbeat, pause })
     assert.isTrue(heartbeat.called)
     assert.isTrue(pause.called)
   })

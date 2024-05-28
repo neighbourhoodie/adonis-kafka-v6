@@ -21,13 +21,14 @@ export class Consumer {
     this.consumer = kafka.consumer(this.config)
   }
 
-  async execute(payload: EachMessagePayload) {
+  async eachMessage(payload: EachMessagePayload): Promise<void> {
     const { topic, partition, message } = payload
+
     let result: any
     try {
       if (!message.value) {
         return
-      } // TODO Log?
+      }
       result = JSON.parse(message.value.toString())
     } catch (error) {
       this.raiseError(topic, error)
@@ -88,10 +89,6 @@ export class Consumer {
     }
 
     return this
-  }
-
-  async eachMessage(payload: EachMessagePayload): Promise<void> {
-    await this.execute(payload)
   }
 
   async on({ topic, fromBeginning }: ConsumerSubscribeTopic, callback: any) {
