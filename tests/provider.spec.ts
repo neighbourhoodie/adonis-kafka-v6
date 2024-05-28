@@ -4,7 +4,7 @@ import { IgnitorFactory } from '@adonisjs/core/factories'
 import { Kafka } from '../src/index.ts'
 import sinon from 'sinon'
 import { Producer } from '../src/producer.ts'
-import { Consumer } from '../src/consumer.ts'
+import { ConsumerGroup } from '../src/consumer.ts'
 
 const BASE_URL = new URL('./tmp/', import.meta.url)
 
@@ -47,10 +47,10 @@ test.group('Kafka Provider', () => {
     const producer = kafkaService.createProducer('test', {})
     assert.instanceOf(producer, Producer)
 
-    const consumer = kafkaService.createConsumer({
+    const consumer = kafkaService.createConsumerGroup({
       groupId: 'test',
     })
-    assert.instanceOf(consumer, Consumer)
+    assert.instanceOf(consumer, ConsumerGroup)
 
     const disconnect = sinon.replace(kafka, 'disconnect', sinon.fake())
 

@@ -1,13 +1,17 @@
 import {
   ProducerConfig as KafkaProducerConfig,
   ConsumerConfig as KafkaConsumerConfig,
+  ConsumerRunConfig as KafkaConsumerRunConfig,
   Message as KafkaMessage,
 } from 'kafkajs'
+
 import type { Level } from '@adonisjs/logger/types'
-import type { Consumer } from './consumer.ts'
+
+import type { ConsumerGroup } from './consumer.ts'
 import type { Producer } from './producer.ts'
 
 import { Kafka } from './index.ts'
+import { Constructor } from '@adonisjs/core/types/container'
 
 declare module '@adonisjs/core/types' {
   export interface ContainerBindings {
@@ -26,9 +30,27 @@ declare module '@adonisjs/core/types' {
     start: (...args: any[]) => void
     disconnect: () => void
     createProducer(name: string, config: KafkaProducerConfig): Producer
-    createConsumer(config: KafkaConsumerConfig): Consumer
+    createConsumerGroup(config: KafkaConsumerConfig, runConfig: ConsumerRunConfig): ConsumerGroup
   }
 }
+
+export type ConsumerRunConfig = Omit<KafkaConsumerRunConfig, 'eachMessage' | 'eachBatch'>
+
+export type ConsumerSubscribeTopic = { topic: string; fromBeginning?: boolean }
+export type ConsumerSubscribeTopics = { topics: string[]; fromBeginning?: boolean }
+export type ConsumerPayload = {
+  key: string | null
+  value: any
+  headers: Record<string, string>
+}
+
+export type ConsumerCommitCallback = (commit: boolean) => Promise<void>
+
+export type ConsumerClassMethod = [Constructor<any>, string]
+export type ConsumerCallback = (
+  payload: ConsumerPayload,
+  commit: ConsumerCommitCallback
+) => Promise<void>
 
 export interface SendMessage extends KafkaMessage {
   value: any

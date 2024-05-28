@@ -4,15 +4,16 @@ import { type ProducerConfig, type ConsumerConfig } from 'kafkajs'
 import type { Logger } from '@adonisjs/core/logger'
 import { ApplicationService, KafkaConfig, KafkaContract } from '@adonisjs/core/types'
 
-import { Consumer } from './consumer.ts'
+import { ConsumerGroup } from './consumer.ts'
 import { Producer } from './producer.ts'
 import { defineConfig } from './define_config.ts'
 import { type KafkaLogLevel, toAdonisLoggerLevel, toKafkaLogLevel } from './logging.ts'
+import { ConsumerRunConfig } from './types.ts'
 
 export class Kafka implements KafkaContract {
   protected application!: ApplicationService
 
-  #consumers: Consumer[]
+  #consumers: ConsumerGroup[]
   #producers: {
     [key: string]: Producer
   }
@@ -44,12 +45,20 @@ export class Kafka implements KafkaContract {
     return producer
   }
 
-  createConsumer(config: ConsumerConfig) {
-    const consumer = new Consumer(this.#kafka, config)
+  createConsumerGroup(config: ConsumerConfig, runConfig?: ConsumerRunConfig) {
+    const consumer = new ConsumerGroup(this.#kafka, config, runConfig ?? {})
 
     this.#consumers.push(consumer)
 
     return consumer
+  }
+
+  get producers() {
+    return this.#producers
+  }
+
+  get consumers() {
+    return this.#consumers
   }
 
   private getBrokers() {
@@ -74,10 +83,12 @@ export class Kafka implements KafkaContract {
         this.#logger.level = toAdonisLoggerLevel(logLevel)
 
         return ({ namespace, level, label: _label, log }) => {
-          const { message, timestamp, logger, ...extra } = log
-          this.#logger
-            .child({ module: `kafka.${namespace}` })
-            [toAdonisLoggerLevel(level)]({ ...extra }, log.message)
+          const { message, timestamp, logger: someLogger, ...extra } = log
+          const logger = namespace
+            ? this.#logger.child({ module: `kafka.${namespace}` })
+            : this.#logger
+
+          logger[toAdonisLoggerLevel(level)]({ ...extra, someLogger }, log.message)
         }
       },
     })
