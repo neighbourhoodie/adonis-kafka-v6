@@ -6,8 +6,6 @@ import env from '#start/env'
 const kafkaConfig = {
   brokers: env.get('KAFKA_BROKERS', 'localhost:9092'),
   clientId: env.get('KAFKA_CLIENT_ID'),
-  connectionTimeout: env.get('KAFKA_CONNECTION_TIMEOUT', 3000),
-  requestTimeout: env.get('KAFKA_REQUEST_TIMEOUT', 60000),
   logLevel: env.get('KAFKA_LOG_LEVEL', env.get('LOG_LEVEL')),
 }
 

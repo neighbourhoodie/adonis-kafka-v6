@@ -73,9 +73,13 @@ export class Kafka implements KafkaContract {
   private createKafka() {
     this.#kafka = new KafkaJs({
       brokers: this.getBrokers(),
-      clientId: this.#config.clientId || 'local',
-      connectionTimeout: this.#config.connectionTimeout,
-      requestTimeout: this.#config.requestTimeout,
+      ssl: this.#config.ssl,
+      sasl: this.#config.sasl,
+      clientId: this.#config.clientId,
+      connectionTimeout: this.#config.timeouts?.connection,
+      requestTimeout: this.#config.timeouts?.request,
+      authenticationTimeout: this.#config.timeouts?.authentication,
+      reauthenticationThreshold: this.#config.timeouts?.reauthentication,
       logLevel: toKafkaLogLevel(this.#config.logLevel),
       logCreator: (logLevel: KafkaLogLevel) => {
         this.#logger.level = toAdonisLoggerLevel(logLevel)
