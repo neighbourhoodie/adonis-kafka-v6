@@ -1,13 +1,18 @@
 import { Kafka, Consumer as KafkaConsumer } from 'kafkajs'
-import { type EachMessagePayload, type ConsumerSubscribeTopic } from 'kafkajs'
+import { type EachMessagePayload } from 'kafkajs'
 
-import { ConsumerGroupConfig } from './types.ts'
+import type {
+  ConsumerGroupConfig,
+  ConsumerSubscribeTopics,
+  ConsumerSubscribeTopic,
+  ConsumerErrorHandler,
+} from './types.ts'
 
 export class Consumer {
   config: ConsumerGroupConfig
   topics: string[]
   events: any
-  errorHandlers: any
+  errorHandlers: Record<string, ConsumerErrorHandler[]>
   consumer: KafkaConsumer
 
   #started: boolean = false
@@ -124,12 +129,12 @@ export class Consumer {
 
   raiseError(topic: string, error: Error) {
     const handlers = this.errorHandlers[topic] || []
-    handlers.forEach((handler: any) => {
+    handlers.forEach((handler) => {
       handler(error)
     })
   }
 
-  registerErrorHandler(topic: string, callback: any) {
+  onError(topic: string, callback: ConsumerErrorHandler) {
     //TODO add resolveCallback
     const handlers = this.errorHandlers[topic] || []
     handlers.push(callback)
