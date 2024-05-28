@@ -20,7 +20,7 @@ export class Kafka implements KafkaContract {
   #config: KafkaConfig
   #logger: Logger
 
-  constructor(logger: Logger, config: KafkaConfig) {
+  constructor(config: KafkaConfig, logger: Logger) {
     this.#config = defineConfig(config)
     this.#logger = logger.child({ module: 'kafka' })
     this.#consumers = []
@@ -92,11 +92,11 @@ export class Kafka implements KafkaContract {
 
   async disconnect() {
     for await (let consumer of this.#consumers) {
-      await consumer.consumer.disconnect()
+      await consumer.stop()
     }
 
     for (let producer in this.#producers) {
-      await this.#producers[producer].producer.disconnect()
+      await this.#producers[producer].stop()
     }
   }
 }

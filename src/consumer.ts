@@ -10,6 +10,8 @@ export class Consumer {
   errorHandlers: any
   consumer: KafkaConsumer
 
+  #started: boolean = false
+
   constructor(kafka: Kafka, config: ConsumerGroupConfig) {
     this.config = config
     this.topics = []
@@ -62,16 +64,30 @@ export class Consumer {
   }
 
   async start() {
-    await this.consumer.connect()
+    if (!this.#started) {
+      await this.consumer.connect()
 
-    await this.consumer.run({
-      autoCommit: this.config.autoCommit,
-      autoCommitInterval: this.config.autoCommitInterval,
-      autoCommitThreshold: this.config.autoCommitThreshold,
-      eachBatchAutoResolve: this.config.eachBatchAutoResolve,
-      partitionsConsumedConcurrently: this.config.partitionsConsumedConcurrently,
-      eachMessage: this.eachMessage.bind(this),
-    })
+      await this.consumer.run({
+        autoCommit: this.config.autoCommit,
+        autoCommitInterval: this.config.autoCommitInterval,
+        autoCommitThreshold: this.config.autoCommitThreshold,
+        eachBatchAutoResolve: this.config.eachBatchAutoResolve,
+        partitionsConsumedConcurrently: this.config.partitionsConsumedConcurrently,
+        eachMessage: this.eachMessage.bind(this),
+      })
+
+      this.#started = true
+    }
+
+    return this
+  }
+
+  async stop() {
+    if (this.#started) {
+      await this.consumer.disconnect()
+    }
+
+    return this
   }
 
   async eachMessage(payload: EachMessagePayload): Promise<void> {

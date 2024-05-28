@@ -14,7 +14,7 @@ export default class KafkaProvider implements ContainerProviderContract {
     this.app.container.singleton('kafka', async () => {
       const logger = await this.app.container.make('logger')
       const config = this.app.config.get<KafkaConfig>('kafka')
-      return new Kafka(logger, config)
+      return new Kafka(config, logger)
     })
   }
 
@@ -25,10 +25,7 @@ export default class KafkaProvider implements ContainerProviderContract {
 
   // Has to be ready to make use of preloads:
   async ready() {
-    const logger = await this.app.container.make('logger')
     const kafka = await this.app.container.make('kafka')
-
-    logger.debug({ consumers: kafka.consumers, producers: kafka.producers })
 
     for (const producer in kafka.producers) {
       await kafka.producers[producer].start()
