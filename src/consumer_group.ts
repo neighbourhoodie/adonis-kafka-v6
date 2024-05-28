@@ -7,7 +7,7 @@ import type {
   ConsumerRunConfig,
   ConsumerSubscribeTopic,
 } from './types.ts'
-import type { Consumer } from './_consumer.ts'
+import type { Consumer } from './consumer.ts'
 import { Constructor } from '@adonisjs/core/types/container'
 
 export class ConsumerGroup {
