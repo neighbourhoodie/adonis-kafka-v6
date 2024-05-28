@@ -1,6 +1,7 @@
-import {
-  ProducerConfig as KafkaProducerConfig,
+import type {
   ConsumerConfig as KafkaConsumerConfig,
+  ProducerConfig as KafkaProducerConfig,
+  ConsumerRunConfig as KafkaConsumerRunConfig,
   Message as KafkaMessage,
 } from 'kafkajs'
 import type { Level } from '@adonisjs/logger/types'
@@ -8,6 +9,11 @@ import type { Consumer } from './consumer.ts'
 import type { Producer } from './producer.ts'
 
 import { Kafka } from './index.ts'
+
+export type ProducerConfig = KafkaProducerConfig
+
+export type ConsumerGroupConfig = KafkaConsumerConfig &
+  Omit<KafkaConsumerRunConfig, 'eachMessage' | 'eachBatch'>
 
 declare module '@adonisjs/core/types' {
   export interface ContainerBindings {
@@ -25,12 +31,10 @@ declare module '@adonisjs/core/types' {
   export interface KafkaContract {
     start: (...args: any[]) => void
     disconnect: () => void
-    createProducer(name: string, config: KafkaProducerConfig): Producer
-    createConsumer(config: KafkaConsumerConfig, runConfig: ConsumerRunConfig): Consumer
+    createProducer(name: string, config?: ProducerConfig): Producer
+    createConsumer(config: ConsumerGroupConfig): Consumer
   }
 }
-
-export type ConsumerRunConfig = Omit<KafkaConsumerRunConfig, 'eachMessage' | 'eachBatch'>
 
 export interface SendMessage extends KafkaMessage {
   value: any

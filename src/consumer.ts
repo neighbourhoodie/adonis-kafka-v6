@@ -1,29 +1,24 @@
 import { Kafka, Consumer as KafkaConsumer } from 'kafkajs'
-import {
-  type ConsumerConfig,
-  type ConsumerRunConfig,
-  type ConsumerSubscribeTopic,
-  type EachMessagePayload,
-} from 'kafkajs'
+import { type EachMessagePayload } from 'kafkajs'
+
+import { ConsumerGroupConfig, ConsumerSubscribeTopics, ConsumerSubscribeTopic } from './types.ts'
 
 export class Consumer {
-  config: ConsumerConfig
+  config: ConsumerGroupConfig
   topics: string[]
   events: any
   errorHandlers: any
   killContainer: boolean
   timeout: any = 0
   consumer: KafkaConsumer
-  consumerRunConfig: ConsumerRunConfig
 
-  constructor(kafka: Kafka, config: ConsumerConfig, consumerRunConfig: ConsumerRunConfig) {
+  constructor(kafka: Kafka, config: ConsumerGroupConfig) {
     this.config = config
     this.topics = []
     this.events = {}
     this.errorHandlers = {}
     this.killContainer = false
     this.timeout = null
-    this.consumerRunConfig = consumerRunConfig
 
     this.consumer = kafka.consumer(this.config)
   }
@@ -52,7 +47,7 @@ export class Consumer {
         callback(
           result,
           async (commit = true) => {
-            if (this.consumerRunConfig.autoCommit) {
+            if (this.config.autoCommit) {
               return resolve()
             }
             if (commit) {
@@ -74,7 +69,11 @@ export class Consumer {
     await this.consumer.connect()
 
     await this.consumer.run({
-      ...this.consumerRunConfig,
+      autoCommit: this.config.autoCommit,
+      autoCommitInterval: this.config.autoCommitInterval,
+      autoCommitThreshold: this.config.autoCommitThreshold,
+      eachBatchAutoResolve: this.config.eachBatchAutoResolve,
+      partitionsConsumedConcurrently: this.config.partitionsConsumedConcurrently,
       eachMessage: this.eachMessage.bind(this),
     })
   }

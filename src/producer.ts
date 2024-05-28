@@ -6,7 +6,7 @@ export class Producer {
   producer: KafkaProducer
   #started: boolean
 
-  constructor(kafka: Kafka, config: ProducerConfig) {
+  constructor(kafka: Kafka, config: ProducerConfig = {}) {
     this.producer = kafka.producer(config)
     this.#started = false
   }

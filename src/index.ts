@@ -1,14 +1,12 @@
 import { Kafka as KafkaJs } from 'kafkajs'
-import { type ProducerConfig, type ConsumerConfig } from 'kafkajs'
-
 import type { Logger } from '@adonisjs/core/logger'
 import { ApplicationService, KafkaConfig, KafkaContract } from '@adonisjs/core/types'
 
+import type { ProducerConfig, ConsumerGroupConfig } from './types.ts'
 import { Consumer } from './consumer.ts'
 import { Producer } from './producer.ts'
 import { defineConfig } from './define_config.ts'
 import { type KafkaLogLevel, toAdonisLoggerLevel, toKafkaLogLevel } from './logging.ts'
-import { ConsumerRunConfig } from './types.ts'
 
 export class Kafka implements KafkaContract {
   protected application!: ApplicationService
@@ -33,8 +31,7 @@ export class Kafka implements KafkaContract {
     this.createKafka()
   }
 
-  createProducer(name: string, config: ProducerConfig) {
-    // TODO: we probably have to break out consumer/producer option config types from KafkaConfig
+  createProducer(name: string, config: ProducerConfig = {}) {
     if (this.#producers[name]) {
       throw new Error(`producer with name '${name}' already exists`)
     }
@@ -45,8 +42,9 @@ export class Kafka implements KafkaContract {
     return producer
   }
 
-  createConsumer(config: ConsumerConfig, runConfig?: ConsumerRunConfig) {
-    const consumer = new Consumer(this.#kafka, config, runConfig ?? {})
+  createConsumer(config: ConsumerGroupConfig) {
+    // TODO: Assert that consumers have different groupId's
+    const consumer = new Consumer(this.#kafka, config)
 
     this.#consumers.push(consumer)
 

@@ -130,15 +130,9 @@ test.group('Kafka Consumer', (group) => {
       brokers: ['asd'],
     })
 
-    const consumer = new Consumer(kafkajs, { groupId: 'test' })
+    const consumer = new Consumer(kafkajs, { groupId: 'test', autoCommit: false })
     // const callback = sinon.stub().callsArg(1)
     // consumer.events['test'] = [callback]
-
-    const runConfig = {
-      autoCommit: true,
-    }
-
-    consumer.consumerRunConfig = runConfig
 
     const execute = sinon.spy(consumer, 'execute')
 
@@ -171,13 +165,11 @@ test.group('Kafka Consumer', (group) => {
       brokers: ['asd'],
     })
 
-    const consumer = new Consumer(kafkajs, { groupId: 'test' })
+    const consumer = new Consumer(kafkajs, { groupId: 'test', autoCommit: true })
     sinon.replace(consumer.consumer, 'commitOffsets', sinon.spy())
     const callback = sinon.stub().callsArg(1)
     consumer.events['test'] = [callback]
-    consumer.consumerRunConfig = {
-      autoCommit: true,
-    }
+
     const message = {
       value: Buffer.from('{"foo":1}'),
       key: null,
@@ -264,13 +256,11 @@ test.group('Kafka Consumer', (group) => {
       brokers: ['asd'],
     })
 
-    const consumer = new Consumer(kafkajs, { groupId: 'test' })
+    const consumer = new Consumer(kafkajs, { groupId: 'test', autoCommit: false })
     const commitOffset = sinon.replace(consumer.consumer, 'commitOffsets', sinon.spy())
     const callback = sinon.stub().callsArgWith(1, true)
     consumer.events['test'] = [callback]
-    consumer.consumerRunConfig = {
-      autoCommit: false,
-    }
+
     const message = {
       value: Buffer.from('123'),
       key: null,
@@ -313,9 +303,7 @@ test.group('Kafka Consumer', (group) => {
       await commit(true)
     })
     consumer.events['test'] = [callback]
-    consumer.consumerRunConfig = {
-      autoCommit: true,
-    }
+
     const message = {
       value: Buffer.from('123'),
       key: null,
