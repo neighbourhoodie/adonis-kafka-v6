@@ -91,27 +91,22 @@ export class Consumer {
     return this
   }
 
-  async on({ topic, fromBeginning }: ConsumerSubscribeTopic, callback: any) {
+  async on(subscription: ConsumerSubscribeTopics, callback: any): Promise<void>
+  async on(subscription: ConsumerSubscribeTopic, callback: any): Promise<void>
+  async on(subscription: ConsumerSubscribeTopic & ConsumerSubscribeTopics, callback: any) {
     const callbackFn = this.resolveCallback(callback)
     if (!callbackFn) {
       throw new Error('no callback specified or cannot find your controller method')
     }
 
-    if (topic instanceof RegExp) {
-      throw new Error('regexp topic not supported by adonis-kafka yet')
+    let topics = []
+    if (Array.isArray(subscription.topics)) {
+      topics = subscription.topics
+    } else {
+      topics = subscription.topic.split(',').filter((topic) => !!topic)
     }
 
-    let topicArray = [topic]
-
-    if (typeof topic === 'string') {
-      topicArray = topic.split(',')
-    }
-
-    topicArray.forEach(async (item: any) => {
-      if (!item) {
-        return
-      }
-
+    topics.forEach(async (item) => {
       const events = this.events[item] || []
 
       events.push(callbackFn)
@@ -119,11 +114,11 @@ export class Consumer {
       this.events[item] = events
 
       this.topics.push(item)
+    })
 
-      await this.consumer.subscribe({
-        topic: item,
-        fromBeginning: fromBeginning,
-      })
+    await this.consumer.subscribe({
+      topics,
+      fromBeginning: subscription.fromBeginning ?? false,
     })
   }
 

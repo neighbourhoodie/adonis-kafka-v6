@@ -15,6 +15,11 @@ export type ProducerConfig = KafkaProducerConfig
 export type ConsumerGroupConfig = KafkaConsumerConfig &
   Omit<KafkaConsumerRunConfig, 'eachMessage' | 'eachBatch'>
 
+export type ConsumerSubscribeTopic = { topic: string; fromBeginning?: boolean }
+export type ConsumerSubscribeTopics = { topics: string[]; fromBeginning?: boolean }
+
+export type ConsumerErrorHandler = (error: Error) => void
+
 declare module '@adonisjs/core/types' {
   export interface ContainerBindings {
     kafka: Kafka
