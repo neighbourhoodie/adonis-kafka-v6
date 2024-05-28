@@ -80,7 +80,7 @@ test.group('Kafka Consumer', (group) => {
 
     const consumer = new Consumer(kafkajs, { groupId: 'test' })
     const handler = sinon.spy()
-    consumer.registerErrorHandler('test', handler)
+    consumer.onError('test', handler)
     const error = new Error('test')
     consumer.raiseError('test', error)
 
@@ -97,13 +97,13 @@ test.group('Kafka Consumer', (group) => {
     const consumer = new Consumer(kafkajs, { groupId: 'test' })
 
     const handler1 = sinon.spy()
-    consumer.registerErrorHandler('topic-1', handler1)
+    consumer.onError('topic-1', handler1)
 
     const handler2 = sinon.spy()
-    consumer.registerErrorHandler('topic-2', handler2)
+    consumer.onError('topic-2', handler2)
 
     const handler3 = sinon.spy()
-    consumer.registerErrorHandler('topic-2', handler3)
+    consumer.onError('topic-2', handler3)
 
     const error1 = new Error('test1')
     const error2 = new Error('test2')
@@ -238,7 +238,7 @@ test.group('Kafka Consumer', (group) => {
     const callback = sinon.stub().callsArg(1)
     consumer.events['test'] = [callback]
     const handler = sinon.spy()
-    consumer.registerErrorHandler('test', handler)
+    consumer.onError('test', handler)
 
     const message = {
       value: Buffer.from('{.123}'),
