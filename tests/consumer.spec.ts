@@ -35,44 +35,6 @@ test.group('Kafka Consumer', (group) => {
     assert.equal(run.callCount, 1)
   })
 
-  // technically this is a private method, just doing this as an exercise for now
-  test('resolveCallback: fn', ({ assert }) => {
-    const kafkajs = new Kafkajs({
-      brokers: ['asd'],
-    })
-
-    const consumer = new Consumer(kafkajs, { groupId: 'test' })
-    const callback = sinon.spy()
-    const resolved = consumer.resolveCallback(callback)
-    assert.equal(callback, resolved)
-  })
-
-  // technically this is a private method, just doing this as an exercise for now
-  test('resolveCallback: method', ({ assert }) => {
-    const kafkajs = new Kafkajs({
-      brokers: ['asd'],
-    })
-
-    const consumer = new Consumer(kafkajs, { groupId: 'test' })
-    class Foo {
-      callback() {}
-    }
-
-    const resolved = consumer.resolveCallback([Foo, 'callback'])
-    assert.equal(resolved.name, 'bound callback')
-  })
-
-  // technically this is a private method, just doing this as an exercise for now
-  test('resolveCallback: wrong', ({ assert }) => {
-    const kafkajs = new Kafkajs({
-      brokers: ['asd'],
-    })
-
-    const consumer = new Consumer(kafkajs, { groupId: 'test' })
-    const resolved = consumer.resolveCallback(123)
-    assert.isNull(resolved)
-  })
-
   test('errorHandler fn', ({ assert }) => {
     const kafkajs = new Kafkajs({
       brokers: ['asd'],
@@ -80,9 +42,9 @@ test.group('Kafka Consumer', (group) => {
 
     const consumer = new Consumer(kafkajs, { groupId: 'test' })
     const handler = sinon.spy()
-    consumer.registerErrorHandler('test', handler)
+    consumer.onError('test', handler)
     const error = new Error('test')
-    consumer.raiseError('test', error)
+    consumer.handleError('test', error)
 
     assert.isTrue(handler.called)
     assert.equal(handler.callCount, 1)
@@ -97,32 +59,46 @@ test.group('Kafka Consumer', (group) => {
     const consumer = new Consumer(kafkajs, { groupId: 'test' })
 
     const handler1 = sinon.spy()
-    consumer.registerErrorHandler('test1', handler1)
-    const error1 = new Error('test1')
+    consumer.onError('topic-1', handler1)
 
     const handler2 = sinon.spy()
-    consumer.registerErrorHandler('test2', handler2)
-    const error2 = new Error('test2')
+    consumer.onError('topic-2', handler2)
 
     const handler3 = sinon.spy()
-    consumer.registerErrorHandler('test3', handler3)
-    const error3 = new Error('test3')
+    consumer.onError('topic-2', handler3)
 
-    consumer.raiseError('test1', error1)
-    consumer.raiseError('test2', error2)
-    consumer.raiseError('test3', error3)
+    const error1 = new Error('test1')
+    const error2 = new Error('test2')
+
+    // One error handler for topic 1
+    consumer.handleError('topic-1', error1)
 
     assert.isTrue(handler1.called)
     assert.equal(handler1.callCount, 1)
+
+    assert.equal(handler2.callCount, 0)
+    assert.equal(handler3.callCount, 0)
+
     assert.isTrue(handler1.calledWith(error1))
 
-    assert.isTrue(handler2.called)
-    assert.equal(handler2.callCount, 1)
-    assert.isTrue(handler2.calledWith(error2))
+    consumer.handleError('topic-2', error2)
 
+    // handler 1 shouldn't be called for topic-2
+    assert.equal(handler1.callCount, 1)
+
+    assert.isTrue(handler2.called)
     assert.isTrue(handler3.called)
+
+    assert.equal(handler2.callCount, 1)
     assert.equal(handler3.callCount, 1)
-    assert.isTrue(handler3.calledWith(error3))
+    assert.isTrue(handler2.calledWith(error2))
+    assert.isTrue(handler3.calledWith(error2))
+
+    // No error handler for topic 3
+    assert.doesNotThrow(() => consumer.handleError('topic-3', error1))
+    assert.equal(handler1.callCount, 1)
+    assert.equal(handler2.callCount, 1)
+    assert.equal(handler3.callCount, 1)
   })
 
   test('eachMessage', async ({ assert }) => {
@@ -186,7 +162,7 @@ test.group('Kafka Consumer', (group) => {
   })
 
   // technically an internal method, but still
-  test('execute null message', async ({ assert }) => {
+  test('eachMessage null message', async ({ assert }) => {
     const kafkajs = new Kafkajs({
       brokers: ['asd'],
     })
@@ -215,7 +191,7 @@ test.group('Kafka Consumer', (group) => {
   })
 
   // technically an internal method, but still
-  test('execute wrong JSON', async ({ assert }) => {
+  test('eachMessage wrong JSON', async ({ assert }) => {
     const kafkajs = new Kafkajs({
       brokers: ['asd'],
     })
@@ -223,8 +199,7 @@ test.group('Kafka Consumer', (group) => {
     const consumer = new Consumer(kafkajs, { groupId: 'test' })
     const callback = sinon.stub().callsArg(1)
     consumer.events['test'] = [callback]
-    const handler = sinon.spy()
-    consumer.registerErrorHandler('test', handler)
+    const handleError = sinon.replace(consumer, 'handleError', sinon.fake())
 
     const message = {
       value: Buffer.from('{.123}'),
@@ -243,12 +218,14 @@ test.group('Kafka Consumer', (group) => {
     })
     assert.isFalse(callback.called)
     assert.isUndefined(result)
-    assert.isTrue(handler.called)
-    assert.isTrue(handler.args[0][0] instanceof SyntaxError)
+    assert.isTrue(handleError.called)
+
+    assert.isTrue(handleError.calledWith('test'))
+    assert.instanceOf(handleError.firstCall.args[1], SyntaxError)
   })
 
   // technically an internal method, but still
-  test('execute autocommit false', async ({ assert }) => {
+  test('eachMessage autocommit false', async ({ assert }) => {
     const kafkajs = new Kafkajs({
       brokers: ['asd'],
     })
@@ -286,17 +263,96 @@ test.group('Kafka Consumer', (group) => {
     )
   })
 
+  test('eachMessage autocommit false never commits', async ({ assert }) => {
+    const kafkajs = new Kafkajs({
+      brokers: ['asd'],
+    })
+
+    const consumer = new Consumer(kafkajs, { groupId: 'test', autoCommit: false })
+    const subscribe = sinon.replace(consumer.consumer, 'subscribe', sinon.spy())
+    const commitOffset = sinon.replace(consumer.consumer, 'commitOffsets', sinon.spy())
+    // Note: we are not calling the commit() function here:
+    const callback = sinon.stub()
+
+    consumer.on({ topic: 'test' }, callback)
+
+    const message = {
+      value: Buffer.from('123'),
+      key: null,
+      timestamp: '2024-05-03',
+      attributes: 0,
+      offset: '1',
+      headers: {},
+    }
+
+    assert.isTrue(subscribe.called)
+
+    assert.rejects(
+      async () =>
+        await consumer.eachMessage({
+          topic: 'test',
+          partition: 1,
+          message,
+          heartbeat: sinon.spy(),
+          pause: sinon.spy(),
+        }),
+      'Expected commit() to be called as autoCommit is false'
+    )
+
+    assert.isTrue(callback.called)
+    assert.isFalse(commitOffset.called)
+  })
+
+  test('eachMessage autocommit non-explicit', async ({ assert }) => {
+    const kafkajs = new Kafkajs({
+      brokers: ['asd'],
+    })
+
+    const consumer = new Consumer(kafkajs, { groupId: 'test', autoCommit: true })
+    const subscribe = sinon.replace(consumer.consumer, 'subscribe', sinon.spy())
+    const commitOffset = sinon.replace(consumer.consumer, 'commitOffsets', sinon.spy())
+    // Note: we are not calling the commit() function here:
+    const callback = sinon.stub()
+
+    consumer.on({ topic: 'test' }, callback)
+
+    const message = {
+      value: Buffer.from('123'),
+      key: null,
+      timestamp: '2024-05-03',
+      attributes: 0,
+      offset: '1',
+      headers: {},
+    }
+
+    assert.isTrue(subscribe.called)
+
+    assert.doesNotReject(
+      async () =>
+        await consumer.eachMessage({
+          topic: 'test',
+          partition: 1,
+          message,
+          heartbeat: sinon.spy(),
+          pause: sinon.spy(),
+        })
+    )
+
+    assert.isTrue(callback.called)
+    assert.isFalse(commitOffset.called)
+  })
+
   // technically an internal method, but still
-  test('execute with heartbeat & pause', async ({ assert }) => {
+  test('eachMessage with heartbeat & pause', async ({ assert }) => {
     const kafkajs = new Kafkajs({
       brokers: ['asd'],
     })
 
     const consumer = new Consumer(kafkajs, { groupId: 'test' })
     sinon.replace(consumer.consumer, 'commitOffsets', sinon.spy())
-    const callback = sinon.stub().callsFake(async function (_result, commit, payload) {
-      await payload.heartbeat()
-      await payload.pause()
+    const callback = sinon.stub().callsFake(async function (_result, commit, heartbeat, pause) {
+      await heartbeat()
+      await pause()
       await commit(true)
     })
     consumer.events['test'] = [callback]
@@ -325,6 +381,7 @@ test.group('Kafka Consumer', (group) => {
     const wrongCallback = 123
     assert.rejects(
       async () =>
+        // @ts-expect-error
         await consumer.on(
           {
             topic: 'test',
@@ -335,27 +392,7 @@ test.group('Kafka Consumer', (group) => {
     )
   })
 
-  test('on no RegExp', async ({ assert }) => {
-    const kafkajs = new Kafkajs({
-      brokers: ['asd'],
-    })
-
-    const consumer = new Consumer(kafkajs, { groupId: 'test' })
-    const wrongCallback = sinon.spy()
-    assert.rejects(
-      async () =>
-        await consumer.on(
-          {
-            topic: /foo/,
-            fromBeginning: false,
-          },
-          wrongCallback
-        )
-    )
-    assert.isFalse(wrongCallback.called)
-  })
-
-  test('on topic string', async ({ assert }) => {
+  test('on single topic string', async ({ assert }) => {
     const kafkajs = new Kafkajs({
       brokers: ['asd'],
     })
@@ -374,16 +411,72 @@ test.group('Kafka Consumer', (group) => {
         )
     )
     assert.isFalse(callback.called)
+
     assert.isTrue(subscribe.calledOnce)
     assert.isTrue(
       subscribe.calledWith({
-        topic: 'test',
+        topics: ['test'],
         fromBeginning: false,
       })
     )
   })
 
-  test('on topic array weird', async ({ assert }) => {
+  test('on single topic string from beginning', async ({ assert }) => {
+    const kafkajs = new Kafkajs({
+      brokers: ['asd'],
+    })
+
+    const consumer = new Consumer(kafkajs, { groupId: 'test' })
+    const subscribe = sinon.replace(consumer.consumer, 'subscribe', sinon.spy())
+    const callback = sinon.spy()
+    assert.doesNotReject(
+      async () =>
+        await consumer.on(
+          {
+            topic: 'foo',
+            fromBeginning: true,
+          },
+          callback
+        )
+    )
+    assert.isFalse(callback.called)
+    assert.isTrue(subscribe.calledOnce)
+    assert.isTrue(
+      subscribe.calledWith({
+        topics: ['foo'],
+        fromBeginning: true,
+      })
+    )
+  })
+
+  test('on single topic string without from beginning', async ({ assert }) => {
+    const kafkajs = new Kafkajs({
+      brokers: ['asd'],
+    })
+
+    const consumer = new Consumer(kafkajs, { groupId: 'test' })
+    const subscribe = sinon.replace(consumer.consumer, 'subscribe', sinon.spy())
+    const callback = sinon.spy()
+    assert.doesNotReject(
+      async () =>
+        await consumer.on(
+          {
+            topic: 'foo',
+          },
+          callback
+        )
+    )
+    assert.isFalse(callback.called)
+    assert.isTrue(subscribe.calledOnce)
+    assert.isTrue(
+      subscribe.calledWith({
+        topics: ['foo'],
+        fromBeginning: false,
+      })
+    )
+  })
+
+  test('on topic string with empty elements', async ({ assert }) => {
     const kafkajs = new Kafkajs({
       brokers: ['asd'],
     })
@@ -405,9 +498,108 @@ test.group('Kafka Consumer', (group) => {
     assert.isTrue(subscribe.calledOnce)
     assert.isTrue(
       subscribe.calledWith({
-        topic: 'test',
+        topics: ['test'],
         fromBeginning: false,
       })
     )
+  })
+
+  test('on multiple topics', async ({ assert }) => {
+    const kafkajs = new Kafkajs({
+      brokers: ['asd'],
+    })
+
+    const consumer = new Consumer(kafkajs, { groupId: 'test' })
+    const subscribe = sinon.replace(consumer.consumer, 'subscribe', sinon.spy())
+    const callback = sinon.spy()
+    assert.doesNotReject(
+      async () =>
+        await consumer.on(
+          {
+            topics: ['foo', 'bar'],
+            fromBeginning: false,
+          },
+          callback
+        )
+    )
+    assert.isFalse(callback.called)
+    assert.isTrue(subscribe.calledOnce)
+    assert.isTrue(
+      subscribe.calledWith({
+        topics: ['foo', 'bar'],
+        fromBeginning: false,
+      })
+    )
+  })
+
+  test('on multiple topics from beginning', async ({ assert }) => {
+    const kafkajs = new Kafkajs({
+      brokers: ['asd'],
+    })
+
+    const consumer = new Consumer(kafkajs, { groupId: 'test' })
+    const subscribe = sinon.replace(consumer.consumer, 'subscribe', sinon.spy())
+    const callback = sinon.spy()
+    assert.doesNotReject(
+      async () =>
+        await consumer.on(
+          {
+            topics: ['foo', 'bar'],
+            fromBeginning: true,
+          },
+          callback
+        )
+    )
+    assert.isFalse(callback.called)
+    assert.isTrue(subscribe.calledOnce)
+    assert.isTrue(
+      subscribe.calledWith({
+        topics: ['foo', 'bar'],
+        fromBeginning: true,
+      })
+    )
+  })
+
+  test('on callback throws', async ({ assert }) => {
+    const kafkajs = new Kafkajs({
+      brokers: ['asd'],
+    })
+
+    const consumer = new Consumer(kafkajs, { groupId: 'test' })
+    const subscribe = sinon.replace(consumer.consumer, 'subscribe', sinon.spy())
+    const handleError = sinon.replace(consumer, 'handleError', sinon.fake())
+    const callback = sinon.stub().throws()
+
+    await consumer.on(
+      {
+        topics: ['test'],
+        fromBeginning: true,
+      },
+      callback
+    )
+
+    assert.isTrue(subscribe.called)
+
+    const message = {
+      value: Buffer.from('123'),
+      key: null,
+      timestamp: '2024-05-03',
+      attributes: 0,
+      offset: '1',
+      headers: {},
+    }
+
+    assert.doesNotReject(async () => {
+      await consumer.eachMessage({
+        topic: 'test',
+        partition: 1,
+        message,
+        heartbeat: sinon.spy(),
+        pause: sinon.spy(),
+      })
+    })
+
+    assert.isTrue(callback.called)
+    assert.isTrue(handleError.called)
   })
 })
