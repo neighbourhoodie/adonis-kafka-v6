@@ -1,7 +1,7 @@
 import { test } from '@japa/runner'
 import * as sinon from 'sinon'
 
-import { Consumer } from '../src/consumer.ts'
+import { Consumer } from '../src/consumer.js'
 import { Kafka as Kafkajs } from 'kafkajs'
 process.env['KAFKAJS_NO_PARTITIONER_WARNING'] = '1'
 

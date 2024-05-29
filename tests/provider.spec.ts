@@ -1,10 +1,10 @@
 import { test } from '@japa/runner'
 
 import { IgnitorFactory } from '@adonisjs/core/factories'
-import { Kafka } from '../src/index.ts'
+import { Kafka } from '../src/index.js'
 import sinon from 'sinon'
-import { Producer } from '../src/producer.ts'
-import { Consumer } from '../src/consumer.ts'
+import { Producer } from '../src/producer.js'
+import { Consumer } from '../src/consumer.js'
 
 const BASE_URL = new URL('./tmp/', import.meta.url)
 
@@ -15,7 +15,7 @@ test.group('Kafka Provider', () => {
     const ignitor = new IgnitorFactory()
       .merge({
         rcFileContents: {
-          providers: [() => import('../providers/kafka_provider.ts')],
+          providers: [() => import('../providers/kafka_provider.js')],
         },
       })
       .withCoreConfig()
@@ -40,7 +40,7 @@ test.group('Kafka Provider', () => {
     const kafka = await app.container.make('kafka')
     assert.instanceOf(kafka, Kafka)
 
-    const { default: kafkaService } = await import('../services/kafka.ts')
+    const { default: kafkaService } = await import('../services/kafka.js')
     assert.instanceOf(kafkaService, Kafka)
 
     const producer = kafkaService.createProducer('test')
@@ -97,7 +97,7 @@ test.group('Kafka Provider', () => {
     const ignitor = new IgnitorFactory()
       .merge({
         rcFileContents: {
-          providers: [() => import('../providers/kafka_provider.ts')],
+          providers: [() => import('../providers/kafka_provider.js')],
         },
       })
       .withCoreConfig()
@@ -148,7 +148,7 @@ test.group('Kafka Provider', () => {
     const ignitor = new IgnitorFactory()
       .merge({
         rcFileContents: {
-          providers: [() => import('../providers/kafka_provider.ts')],
+          providers: [() => import('../providers/kafka_provider.js')],
         },
       })
       .withCoreConfig()

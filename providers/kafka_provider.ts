@@ -1,7 +1,7 @@
 import { ApplicationService, KafkaConfig } from '@adonisjs/core/types'
 import { ContainerProviderContract } from '@adonisjs/core/types/app'
 
-import { Kafka } from '../src/index.ts'
+import { Kafka } from '../src/index.js'
 
 export default class KafkaProvider implements ContainerProviderContract {
   private app: ApplicationService

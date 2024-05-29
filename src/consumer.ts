@@ -1,7 +1,7 @@
 import { Kafka, Consumer as KafkaConsumer } from 'kafkajs'
 import { type EachMessagePayload } from 'kafkajs'
 
-import {
+import type {
   ConsumerGroupConfig,
   ConsumerSubscribeTopics,
   ConsumerSubscribeTopic,

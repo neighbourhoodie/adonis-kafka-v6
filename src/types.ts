@@ -13,7 +13,7 @@ import type { Level } from '@adonisjs/logger/types'
 import type { Consumer } from './consumer.ts'
 import type { Producer } from './producer.ts'
 
-import { Kafka } from './index.ts'
+import { Kafka } from './index.js'
 
 export type ProducerConfig = KafkaProducerConfig
 

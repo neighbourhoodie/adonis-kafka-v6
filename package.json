@@ -12,12 +12,15 @@
   ],
   "exports": {
     ".": "./build/index.js",
+    "./commands": "./build/commands/main.js",
+    "./commands/*": "./build/commands/*.js",
     "./env": "./build/src/env/index.js",
     "./types": "./build/src/types.js",
     "./kafka_provider": "./build/providers/kafka_provider.js",
     "./services/kafka": "./build/services/kafka.js"
   },
   "scripts": {
+    "index:commands": "adonis-kit index build/commands",
     "clean": "del-cli build",
     "copy:templates": "copyfiles \"stubs/**/*.stub\" build",
     "typecheck": "tsc --noEmit",
@@ -27,8 +30,8 @@
     "pretest": "npm run lint",
     "test": "c8 npm run quick:test",
     "prebuild": "npm run lint && npm run clean",
-    "build": "tsup-node && tsc --emitDeclarationOnly --declaration",
-    "postbuild": "npm run copy:templates",
+    "build": "tsc",
+    "postbuild": "npm run copy:templates && npm run index:commands",
     "release": "np",
     "version": "npm run build",
     "prepublishOnly": "npm run build"
@@ -56,7 +59,6 @@
     "prettier": "^3.1.1",
     "sinon": "^17.0.1",
     "ts-node": "^10.9.2",
-    "tsup": "^8.0.2",
     "typescript": "^5.3.3"
   },
   "dependencies": {
@@ -88,21 +90,5 @@
   "eslintConfig": {
     "extends": "@adonisjs/eslint-config/package"
   },
-  "prettier": "@adonisjs/prettier-config",
-  "tsup": {
-    "entry": [
-      "./index.ts",
-      "./src/env/index.ts",
-      "./src/types.ts",
-      "./services/kafka.ts",
-      "./providers/kafka_provider.ts",
-      "./factories/main.ts"
-    ],
-    "outDir": "./build",
-    "clean": true,
-    "format": "esm",
-    "dts": false,
-    "sourcemap": true,
-    "target": "esnext"
-  }
+  "prettier": "@adonisjs/prettier-config"
 }
