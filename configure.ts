@@ -25,8 +25,8 @@ export async function configure(command: ConfigureCommand) {
   /**
    * Publish config file
    */
-  await codemods.makeUsingStub(stubsRoot, 'stubs/config/kafka.stub', {})
-  await codemods.makeUsingStub(stubsRoot, 'stubs/start/kafka.stub', {})
+  await codemods.makeUsingStub(stubsRoot, 'config/kafka.stub', {})
+  await codemods.makeUsingStub(stubsRoot, 'start/kafka.stub', {})
 
   /**
    * Define environment variables
