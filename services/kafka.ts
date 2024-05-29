@@ -1,5 +1,5 @@
 import app from '@adonisjs/core/services/app'
-import { Kafka } from '../src/index.ts'
+import { Kafka } from '../src/index.js'
 
 let kafka: Kafka
 

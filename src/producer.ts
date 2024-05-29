@@ -1,6 +1,6 @@
 import { Kafka, Producer as KafkaProducer, type ProducerConfig } from 'kafkajs'
 
-import { SendMessage } from './types.ts'
+import type { SendMessage } from './types.ts'
 
 export class Producer {
   producer: KafkaProducer

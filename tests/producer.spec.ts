@@ -1,9 +1,9 @@
 import { test } from '@japa/runner'
 import * as sinon from 'sinon'
 
-import { Producer } from '../src/producer.ts'
+import { Producer } from '../src/producer.js'
 import { Kafka as Kafkajs } from 'kafkajs'
-import { SendMessage } from '../src/types.ts'
+import type { SendMessage } from '../src/types.js'
 process.env['KAFKAJS_NO_PARTITIONER_WARNING'] = '1'
 
 test.group('Kafka Producer', (group) => {

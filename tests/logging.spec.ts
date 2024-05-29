@@ -2,7 +2,7 @@ import { test } from '@japa/runner'
 import { Level } from '@adonisjs/logger/types'
 import { logLevel } from 'kafkajs'
 
-import { toAdonisLoggerLevel, toKafkaLogLevel } from '../src/logging.ts'
+import { toAdonisLoggerLevel, toKafkaLogLevel } from '../src/logging.js'
 
 test.group('Logging: toAdonisLoggerLevel', () => {
   test('with logLevel.ERROR', async ({ assert }) => {

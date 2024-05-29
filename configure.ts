@@ -25,8 +25,8 @@ export async function configure(command: ConfigureCommand) {
   /**
    * Publish config file
    */
-  await codemods.makeUsingStub(stubsRoot, 'stubs/config/kafka.stub', {})
-  await codemods.makeUsingStub(stubsRoot, 'stubs/start/kafka.stub', {})
+  await codemods.makeUsingStub(stubsRoot, 'config/kafka.stub', {})
+  await codemods.makeUsingStub(stubsRoot, 'start/kafka.stub', {})
 
   /**
    * Define environment variables
@@ -69,7 +69,22 @@ export async function configure(command: ConfigureCommand) {
    * Register provider
    */
   await codemods.updateRcFile((rcFile) => {
+    rcFile.addCommand(`${command.name}/commands`)
     rcFile.addProvider(`${command.name}/kafka_provider`)
     rcFile.addPreloadFile(`#start/kafka`)
   })
+
+  /**
+   * Install packages
+   */
+  // Prompt when `install` or `--no-install` flags are not used
+  let shouldInstallPackages: boolean | undefined = command.parsedFlags.install
+  if (shouldInstallPackages === undefined) {
+    shouldInstallPackages = await command.prompt.confirm(
+      `Do you want to install additional packages required by "${command.name}"?`
+    )
+  }
+  if (shouldInstallPackages) {
+    await codemods.installPackages([{ name: 'kafkajs', isDevDependency: false }])
+  }
 }

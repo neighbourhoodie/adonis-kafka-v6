@@ -3,10 +3,10 @@ import type { Logger } from '@adonisjs/core/logger'
 import { ApplicationService, KafkaConfig, KafkaContract } from '@adonisjs/core/types'
 
 import type { ProducerConfig, ConsumerGroupConfig } from './types.ts'
-import { Consumer } from './consumer.ts'
-import { Producer } from './producer.ts'
-import { defineConfig } from './define_config.ts'
-import { type KafkaLogLevel, toAdonisLoggerLevel, toKafkaLogLevel } from './logging.ts'
+import { Consumer } from './consumer.js'
+import { Producer } from './producer.js'
+import { defineConfig } from './define_config.js'
+import { type KafkaLogLevel, toAdonisLoggerLevel, toKafkaLogLevel } from './logging.js'
 
 export class Kafka implements KafkaContract {
   protected application!: ApplicationService
