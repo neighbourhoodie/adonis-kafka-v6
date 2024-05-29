@@ -1,40 +1,34 @@
 import { Kafka, Consumer as KafkaConsumer } from 'kafkajs'
-import {
-  type ConsumerConfig,
-  type ConsumerRunConfig,
-  type ConsumerSubscribeTopic,
-  type EachMessagePayload,
-} from 'kafkajs'
+import { type EachMessagePayload, type ConsumerSubscribeTopic } from 'kafkajs'
+
+import { ConsumerGroupConfig } from './types.ts'
 
 export class Consumer {
-  config: ConsumerConfig
+  config: ConsumerGroupConfig
   topics: string[]
   events: any
   errorHandlers: any
-  killContainer: boolean
-  timeout: any = 0
   consumer: KafkaConsumer
-  consumerRunConfig: ConsumerRunConfig
 
-  constructor(kafka: Kafka, config: any) {
+  #started: boolean = false
+
+  constructor(kafka: Kafka, config: ConsumerGroupConfig) {
     this.config = config
     this.topics = []
     this.events = {}
     this.errorHandlers = {}
-    this.killContainer = false
-    this.timeout = null
-    this.consumerRunConfig = {}
 
-    this.consumer = kafka.consumer({ groupId: this.config.groupId })
+    this.consumer = kafka.consumer(this.config)
   }
 
-  async execute(payload: EachMessagePayload) {
+  async eachMessage(payload: EachMessagePayload): Promise<void> {
     const { topic, partition, message } = payload
+
     let result: any
     try {
       if (!message.value) {
         return
-      } // TODO Log?
+      }
       result = JSON.parse(message.value.toString())
     } catch (error) {
       this.raiseError(topic, error)
@@ -52,7 +46,7 @@ export class Consumer {
         callback(
           result,
           async (commit = true) => {
-            if (this.consumerRunConfig.autoCommit) {
+            if (this.config.autoCommit) {
               return resolve()
             }
             if (commit) {
@@ -70,20 +64,31 @@ export class Consumer {
     await Promise.all(promises)
   }
 
-  async start(consumerRunConfig: ConsumerRunConfig = {}) {
-    this.consumerRunConfig = consumerRunConfig
+  async start() {
+    if (!this.#started) {
+      await this.consumer.connect()
 
-    await this.consumer.connect()
+      await this.consumer.run({
+        autoCommit: this.config.autoCommit,
+        autoCommitInterval: this.config.autoCommitInterval,
+        autoCommitThreshold: this.config.autoCommitThreshold,
+        eachBatchAutoResolve: this.config.eachBatchAutoResolve,
+        partitionsConsumedConcurrently: this.config.partitionsConsumedConcurrently,
+        eachMessage: this.eachMessage.bind(this),
+      })
 
-    await this.consumer.run({
-      partitionsConsumedConcurrently: consumerRunConfig.partitionsConsumedConcurrently,
-      autoCommit: consumerRunConfig.autoCommit,
-      eachMessage: this.eachMessage,
-    })
+      this.#started = true
+    }
+
+    return this
   }
 
-  async eachMessage(payload: EachMessagePayload): Promise<void> {
-    await this.execute(payload)
+  async stop() {
+    if (this.#started) {
+      await this.consumer.disconnect()
+    }
+
+    return this
   }
 
   async on({ topic, fromBeginning }: ConsumerSubscribeTopic, callback: any) {

@@ -130,17 +130,8 @@ test.group('Kafka Consumer', (group) => {
       brokers: ['asd'],
     })
 
-    const consumer = new Consumer(kafkajs, { groupId: 'test' })
-    // const callback = sinon.stub().callsArg(1)
-    // consumer.events['test'] = [callback]
-
-    const runConfig = {
-      autoCommit: true,
-    }
-
-    consumer.consumerRunConfig = runConfig
-
-    const execute = sinon.spy(consumer, 'execute')
+    const consumer = new Consumer(kafkajs, { groupId: 'test', autoCommit: false })
+    const eachMessage = sinon.spy(consumer, 'eachMessage')
 
     const message = {
       value: Buffer.from('{"foo":1}'),
@@ -161,23 +152,21 @@ test.group('Kafka Consumer', (group) => {
 
     await consumer.eachMessage(payload)
 
-    assert.isTrue(execute.called)
-    assert.isTrue(execute.calledWith(payload))
+    assert.isTrue(eachMessage.called)
+    assert.isTrue(eachMessage.calledWith(payload))
   })
 
   // technically an internal method, but still
-  test('execute', async ({ assert }) => {
+  test('eachMessage via events', async ({ assert }) => {
     const kafkajs = new Kafkajs({
       brokers: ['asd'],
     })
 
-    const consumer = new Consumer(kafkajs, { groupId: 'test' })
+    const consumer = new Consumer(kafkajs, { groupId: 'test', autoCommit: true })
     sinon.replace(consumer.consumer, 'commitOffsets', sinon.spy())
     const callback = sinon.stub().callsArg(1)
     consumer.events['test'] = [callback]
-    consumer.consumerRunConfig = {
-      autoCommit: true,
-    }
+
     const message = {
       value: Buffer.from('{"foo":1}'),
       key: null,
@@ -186,7 +175,7 @@ test.group('Kafka Consumer', (group) => {
       offset: '1',
       headers: {},
     }
-    await consumer.execute({
+    await consumer.eachMessage({
       topic: 'test',
       partition: 1,
       message,
@@ -214,7 +203,7 @@ test.group('Kafka Consumer', (group) => {
       offset: '1',
       headers: {},
     }
-    const result = await consumer.execute({
+    const result = await consumer.eachMessage({
       topic: 'test',
       partition: 1,
       message,
@@ -245,7 +234,7 @@ test.group('Kafka Consumer', (group) => {
       offset: '1',
       headers: {},
     }
-    const result = await consumer.execute({
+    const result = await consumer.eachMessage({
       topic: 'test',
       partition: 1,
       message,
@@ -264,13 +253,11 @@ test.group('Kafka Consumer', (group) => {
       brokers: ['asd'],
     })
 
-    const consumer = new Consumer(kafkajs, { groupId: 'test' })
+    const consumer = new Consumer(kafkajs, { groupId: 'test', autoCommit: false })
     const commitOffset = sinon.replace(consumer.consumer, 'commitOffsets', sinon.spy())
     const callback = sinon.stub().callsArgWith(1, true)
     consumer.events['test'] = [callback]
-    consumer.consumerRunConfig = {
-      autoCommit: false,
-    }
+
     const message = {
       value: Buffer.from('123'),
       key: null,
@@ -279,7 +266,7 @@ test.group('Kafka Consumer', (group) => {
       offset: '1',
       headers: {},
     }
-    await consumer.execute({
+    await consumer.eachMessage({
       topic: 'test',
       partition: 1,
       message,
@@ -313,9 +300,7 @@ test.group('Kafka Consumer', (group) => {
       await commit(true)
     })
     consumer.events['test'] = [callback]
-    consumer.consumerRunConfig = {
-      autoCommit: true,
-    }
+
     const message = {
       value: Buffer.from('123'),
       key: null,
@@ -326,7 +311,7 @@ test.group('Kafka Consumer', (group) => {
     }
     const heartbeat = sinon.spy()
     const pause = sinon.spy()
-    await consumer.execute({ topic: 'test', partition: 1, message, heartbeat, pause })
+    await consumer.eachMessage({ topic: 'test', partition: 1, message, heartbeat, pause })
     assert.isTrue(heartbeat.called)
     assert.isTrue(pause.called)
   })

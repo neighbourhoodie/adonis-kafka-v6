@@ -1,9 +1,8 @@
 import { Kafka as KafkaJs } from 'kafkajs'
-import { type ProducerConfig, type ConsumerConfig } from 'kafkajs'
-
 import type { Logger } from '@adonisjs/core/logger'
 import { ApplicationService, KafkaConfig, KafkaContract } from '@adonisjs/core/types'
 
+import type { ProducerConfig, ConsumerGroupConfig } from './types.ts'
 import { Consumer } from './consumer.ts'
 import { Producer } from './producer.ts'
 import { defineConfig } from './define_config.ts'
@@ -21,7 +20,7 @@ export class Kafka implements KafkaContract {
   #config: KafkaConfig
   #logger: Logger
 
-  constructor(logger: Logger, config: KafkaConfig) {
+  constructor(config: KafkaConfig, logger: Logger) {
     this.#config = defineConfig(config)
     this.#logger = logger.child({ module: 'kafka' })
     this.#consumers = []
@@ -32,8 +31,7 @@ export class Kafka implements KafkaContract {
     this.createKafka()
   }
 
-  createProducer(name: string, config: ProducerConfig) {
-    // TODO: we probably have to break out consumer/producer option config types from KafkaConfig
+  createProducer(name: string, config: ProducerConfig = {}) {
     if (this.#producers[name]) {
       throw new Error(`producer with name '${name}' already exists`)
     }
@@ -44,12 +42,21 @@ export class Kafka implements KafkaContract {
     return producer
   }
 
-  createConsumer(config: ConsumerConfig) {
+  createConsumer(config: ConsumerGroupConfig) {
+    // TODO: Assert that consumers have different groupId's
     const consumer = new Consumer(this.#kafka, config)
 
     this.#consumers.push(consumer)
 
     return consumer
+  }
+
+  get producers() {
+    return this.#producers
+  }
+
+  get consumers() {
+    return this.#consumers
   }
 
   private getBrokers() {
@@ -85,11 +92,11 @@ export class Kafka implements KafkaContract {
 
   async disconnect() {
     for await (let consumer of this.#consumers) {
-      await consumer.consumer.disconnect()
+      await consumer.stop()
     }
 
     for (let producer in this.#producers) {
-      await this.#producers[producer].producer.disconnect()
+      await this.#producers[producer].stop()
     }
   }
 }

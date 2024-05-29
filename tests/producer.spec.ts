@@ -17,7 +17,7 @@ test.group('Kafka Producer', (group) => {
     })
 
     const producer = sinon.spy(kafkajs, 'producer')
-    new Producer(kafkajs, {})
+    new Producer(kafkajs)
     assert.isTrue(producer.called)
   })
 
