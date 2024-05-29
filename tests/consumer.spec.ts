@@ -95,7 +95,7 @@ test.group('Kafka Consumer', (group) => {
     assert.isTrue(handler3.calledWith(error2))
 
     // No error handler for topic 3
-    consumer.handleError('topic-3', error1)
+    assert.doesNotThrow(() => consumer.handleError('topic-3', error1))
     assert.equal(handler1.callCount, 1)
     assert.equal(handler2.callCount, 1)
     assert.equal(handler3.callCount, 1)
