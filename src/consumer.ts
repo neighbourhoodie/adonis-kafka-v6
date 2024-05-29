@@ -1,7 +1,7 @@
 import { Kafka, Consumer as KafkaConsumer } from 'kafkajs'
-import { type EachMessagePayload } from 'kafkajs'
+import { type EachMessagePayload, type ConsumerSubscribeTopic } from 'kafkajs'
 
-import { ConsumerGroupConfig, ConsumerSubscribeTopics, ConsumerSubscribeTopic } from './types.ts'
+import { ConsumerGroupConfig } from './types.ts'
 
 export class Consumer {
   config: ConsumerGroupConfig
