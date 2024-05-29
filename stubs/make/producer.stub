@@ -1,0 +1,18 @@
+{{#var producerName = generators.modelName(entity.name)}}
+{{#var producerFileName = generators.modelFileName(entity.name)}}
+{{{
+  exports({
+    to: app.makePath(entity.path, 'app', 'producers', producerFileName)
+  })
+}}}
+import { {{ProducerClass}} } from '#start/kafka'
+
+export default class {{producerName}} {
+  static topic = '{{topic}}'
+
+  static async publish(event: any) {
+    return {{ProducerClass}}.send({{producerName}}.topic, {
+      value: event,
+    })
+  }
+}
