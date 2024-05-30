@@ -71,7 +71,7 @@ export async function configure(command: ConfigureCommand) {
       KAFKA_SASL_USERNAME: `Env.schema.string.optional()`,
       KAFKA_SASL_PASSWORD: `Env.schema.string.optional()`,
     },
-    leadingComment: 'Variables for configuring kafka package',
+    leadingComment: `Variables for configuring ${command.name}`,
   })
 
   /**
