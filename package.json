@@ -60,6 +60,7 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
+    "@poppinss/validator-lite": "^1.0.3",
     "kafkajs": "^2.2.4"
   },
   "peerDependencies": {

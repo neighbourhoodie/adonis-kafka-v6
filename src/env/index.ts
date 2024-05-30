@@ -1,3 +1,5 @@
+import { schema } from '@poppinss/validator-lite'
+
 /**
  * This is used to validate the start/env.ts for Kafka Brokers
  */
@@ -14,17 +16,29 @@ export const KafkaEnv: KafkaEnv = {
     brokers() {
       return (name: string, value?: string): string[] => {
         if (!value) {
-          throw new Error(`value for $${name} is required`)
+          throw new Error(`Missing environment variable "${name}"`)
         }
 
-        const urls = value.split(',')
-        const valid = urls.every((url) => {
-          return URL.canParse(url)
+        const hostValidator = schema.string({
+          format: 'host',
+          message: `Value for environment variable "${name}" must only contain valid domain or ip addresses, instead received "${value}"`,
         })
 
-        if (!valid) {
-          throw new Error(`Invalid URLs in $${name}`)
-        }
+        const portValidator = schema.number()
+
+        const urls = value.split(',')
+        urls.every((url) => {
+          if (!url.includes(':')) {
+            throw new Error(
+              `Value for environment variable "${name}" must include both hostnames and port numbers, instead received ${value}`
+            )
+          }
+
+          const [hostname, port] = url.split(':', 2)
+
+          hostValidator(name, hostname)
+          portValidator(name, port)
+        })
 
         return urls
       }
