@@ -56,11 +56,20 @@ export async function configure(command: ConfigureCommand) {
   await codemods.defineEnvValidations({
     variables: {
       KAFKA_BROKERS: `KafkaEnv.schema.brokers()`,
+
       KAFKA_CLIENT_ID: `Env.schema.string.optional()`,
-      KAFKA_GROUP_ID: `Env.schema.string.optional()`,
+      KAFKA_LOG_LEVEL: `Env.schema.enum.optional(['fatal', 'error', 'warn', 'info', 'debug', 'trace'])`,
+
       KAFKA_CONNECTION_TIMEOUT: `Env.schema.number.optional()`,
       KAFKA_REQUEST_TIMEOUT: `Env.schema.number.optional()`,
-      KAFKA_LOG_LEVEL: `Env.schema.enum.optional(['fatal', 'error', 'warn', 'info', 'debug', 'trace'])`,
+      KAFKA_AUTHENTICATION_TIMEOUT: `Env.schema.number.optional()`,
+      KAFKA_REAUTHENTICATION_TIMEOUT: `Env.schema.number.optional()`,
+
+      // We don't yet support AWS IAM or OAuth Bearer or custom mechanisms
+      KAFKA_SECURITY_PROTOCOL: `Env.schema.enum.optional(['PLAIN', 'SSL'])`,
+      KAFKA_SASL_MECHANISM: `Env.schema.enum.optional(['PLAIN', 'SCRAM-SHA-256', 'SCRAM-SHA-512'])`,
+      KAFKA_SASL_USERNAME: `Env.schema.string.optional()`,
+      KAFKA_SASL_PASSWORD: `Env.schema.string.optional()`,
     },
     leadingComment: 'Variables for configuring kafka package',
   })
