@@ -10,7 +10,7 @@ import type {
   ConsumerCommitCallback,
 } from './types.ts'
 
-export class Consumer {
+export class ConsumerGroup {
   config: ConsumerGroupConfig
   topics: string[]
   events: Record<string, ConsumerCallback[]>

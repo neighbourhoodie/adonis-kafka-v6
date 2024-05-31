@@ -10,7 +10,7 @@ import type {
 import type tls from 'node:tls'
 
 import type { Level } from '@adonisjs/logger/types'
-import type { Consumer } from './consumer.ts'
+import type { ConsumerGroup } from './consumer_group.ts'
 import type { Producer } from './producer.ts'
 
 import { Kafka } from './index.ts'
@@ -54,10 +54,13 @@ declare module '@adonisjs/core/types' {
   }
 
   export interface KafkaContract {
-    start: (...args: any[]) => void
-    disconnect: () => void
+    boot(...args: any[]): void
+    startConsumerGroups(): Promise<void>
+    startProducers(): Promise<void>
+    stop(): Promise<void>
+
     createProducer(name: string, config?: ProducerConfig): Producer
-    createConsumer(config: ConsumerGroupConfig): Consumer
+    createConsumerGroup(config: ConsumerGroupConfig): ConsumerGroup
   }
 }
 

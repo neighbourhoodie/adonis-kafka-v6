@@ -1,7 +1,7 @@
 import { test } from '@japa/runner'
 import * as sinon from 'sinon'
 
-import { Consumer } from '../src/consumer.ts'
+import { ConsumerGroup } from '../src/consumer_group.ts'
 import { Kafka as Kafkajs } from 'kafkajs'
 process.env['KAFKAJS_NO_PARTITIONER_WARNING'] = '1'
 
@@ -15,7 +15,7 @@ test.group('Kafka Consumer', (group) => {
       brokers: ['asd'],
     })
     const consumer = sinon.spy(kafkajs, 'consumer')
-    new Consumer(kafkajs, { groupId: 'test' })
+    new ConsumerGroup(kafkajs, { groupId: 'test' })
     assert.isTrue(consumer.called)
   })
 
@@ -24,7 +24,7 @@ test.group('Kafka Consumer', (group) => {
       brokers: ['asd'],
     })
 
-    const consumer = new Consumer(kafkajs, { groupId: 'test' })
+    const consumer = new ConsumerGroup(kafkajs, { groupId: 'test' })
     const connect = sinon.replace(consumer.consumer, 'connect', sinon.fake())
     const run = sinon.replace(consumer.consumer, 'run', sinon.fake())
     await consumer.start()
@@ -40,7 +40,7 @@ test.group('Kafka Consumer', (group) => {
       brokers: ['asd'],
     })
 
-    const consumer = new Consumer(kafkajs, { groupId: 'test' })
+    const consumer = new ConsumerGroup(kafkajs, { groupId: 'test' })
     const handler = sinon.spy()
     consumer.onError('test', handler)
     const error = new Error('test')
@@ -56,7 +56,7 @@ test.group('Kafka Consumer', (group) => {
       brokers: ['asd'],
     })
 
-    const consumer = new Consumer(kafkajs, { groupId: 'test' })
+    const consumer = new ConsumerGroup(kafkajs, { groupId: 'test' })
 
     const handler1 = sinon.spy()
     consumer.onError('topic-1', handler1)
@@ -106,7 +106,7 @@ test.group('Kafka Consumer', (group) => {
       brokers: ['asd'],
     })
 
-    const consumer = new Consumer(kafkajs, { groupId: 'test', autoCommit: false })
+    const consumer = new ConsumerGroup(kafkajs, { groupId: 'test', autoCommit: false })
     const eachMessage = sinon.spy(consumer, 'eachMessage')
 
     const message = {
@@ -138,7 +138,7 @@ test.group('Kafka Consumer', (group) => {
       brokers: ['asd'],
     })
 
-    const consumer = new Consumer(kafkajs, { groupId: 'test', autoCommit: true })
+    const consumer = new ConsumerGroup(kafkajs, { groupId: 'test', autoCommit: true })
     sinon.replace(consumer.consumer, 'commitOffsets', sinon.spy())
     const callback = sinon.stub().callsArg(1)
     consumer.events['test'] = [callback]
@@ -167,7 +167,7 @@ test.group('Kafka Consumer', (group) => {
       brokers: ['asd'],
     })
 
-    const consumer = new Consumer(kafkajs, { groupId: 'test' })
+    const consumer = new ConsumerGroup(kafkajs, { groupId: 'test' })
     const callback = sinon.stub().callsArg(1)
     consumer.events['test'] = [callback]
 
@@ -196,7 +196,7 @@ test.group('Kafka Consumer', (group) => {
       brokers: ['asd'],
     })
 
-    const consumer = new Consumer(kafkajs, { groupId: 'test' })
+    const consumer = new ConsumerGroup(kafkajs, { groupId: 'test' })
     const callback = sinon.stub().callsArg(1)
     consumer.events['test'] = [callback]
     const handleError = sinon.replace(consumer, 'handleError', sinon.fake())
@@ -230,7 +230,7 @@ test.group('Kafka Consumer', (group) => {
       brokers: ['asd'],
     })
 
-    const consumer = new Consumer(kafkajs, { groupId: 'test', autoCommit: false })
+    const consumer = new ConsumerGroup(kafkajs, { groupId: 'test', autoCommit: false })
     const commitOffset = sinon.replace(consumer.consumer, 'commitOffsets', sinon.spy())
     const callback = sinon.stub().callsArgWith(1, true)
     consumer.events['test'] = [callback]
@@ -268,7 +268,7 @@ test.group('Kafka Consumer', (group) => {
       brokers: ['asd'],
     })
 
-    const consumer = new Consumer(kafkajs, { groupId: 'test', autoCommit: false })
+    const consumer = new ConsumerGroup(kafkajs, { groupId: 'test', autoCommit: false })
     const subscribe = sinon.replace(consumer.consumer, 'subscribe', sinon.spy())
     const commitOffset = sinon.replace(consumer.consumer, 'commitOffsets', sinon.spy())
     // Note: we are not calling the commit() function here:
@@ -308,7 +308,7 @@ test.group('Kafka Consumer', (group) => {
       brokers: ['asd'],
     })
 
-    const consumer = new Consumer(kafkajs, { groupId: 'test', autoCommit: true })
+    const consumer = new ConsumerGroup(kafkajs, { groupId: 'test', autoCommit: true })
     const subscribe = sinon.replace(consumer.consumer, 'subscribe', sinon.spy())
     const commitOffset = sinon.replace(consumer.consumer, 'commitOffsets', sinon.spy())
     // Note: we are not calling the commit() function here:
@@ -348,7 +348,7 @@ test.group('Kafka Consumer', (group) => {
       brokers: ['asd'],
     })
 
-    const consumer = new Consumer(kafkajs, { groupId: 'test' })
+    const consumer = new ConsumerGroup(kafkajs, { groupId: 'test' })
     sinon.replace(consumer.consumer, 'commitOffsets', sinon.spy())
     const callback = sinon.stub().callsFake(async function (_result, commit, heartbeat, pause) {
       await heartbeat()
@@ -377,7 +377,7 @@ test.group('Kafka Consumer', (group) => {
       brokers: ['asd'],
     })
 
-    const consumer = new Consumer(kafkajs, { groupId: 'test' })
+    const consumer = new ConsumerGroup(kafkajs, { groupId: 'test' })
     const wrongCallback = 123
     assert.rejects(
       async () =>
@@ -397,7 +397,7 @@ test.group('Kafka Consumer', (group) => {
       brokers: ['asd'],
     })
 
-    const consumer = new Consumer(kafkajs, { groupId: 'test' })
+    const consumer = new ConsumerGroup(kafkajs, { groupId: 'test' })
     const subscribe = sinon.replace(consumer.consumer, 'subscribe', sinon.spy())
     const callback = sinon.spy()
     assert.doesNotReject(
@@ -426,7 +426,7 @@ test.group('Kafka Consumer', (group) => {
       brokers: ['asd'],
     })
 
-    const consumer = new Consumer(kafkajs, { groupId: 'test' })
+    const consumer = new ConsumerGroup(kafkajs, { groupId: 'test' })
     const subscribe = sinon.replace(consumer.consumer, 'subscribe', sinon.spy())
     const callback = sinon.spy()
     assert.doesNotReject(
@@ -454,7 +454,7 @@ test.group('Kafka Consumer', (group) => {
       brokers: ['asd'],
     })
 
-    const consumer = new Consumer(kafkajs, { groupId: 'test' })
+    const consumer = new ConsumerGroup(kafkajs, { groupId: 'test' })
     const subscribe = sinon.replace(consumer.consumer, 'subscribe', sinon.spy())
     const callback = sinon.spy()
     assert.doesNotReject(
@@ -481,7 +481,7 @@ test.group('Kafka Consumer', (group) => {
       brokers: ['asd'],
     })
 
-    const consumer = new Consumer(kafkajs, { groupId: 'test' })
+    const consumer = new ConsumerGroup(kafkajs, { groupId: 'test' })
     const subscribe = sinon.replace(consumer.consumer, 'subscribe', sinon.spy())
     const callback = sinon.spy()
     assert.doesNotReject(
@@ -509,7 +509,7 @@ test.group('Kafka Consumer', (group) => {
       brokers: ['asd'],
     })
 
-    const consumer = new Consumer(kafkajs, { groupId: 'test' })
+    const consumer = new ConsumerGroup(kafkajs, { groupId: 'test' })
     const subscribe = sinon.replace(consumer.consumer, 'subscribe', sinon.spy())
     const callback = sinon.spy()
     assert.doesNotReject(
@@ -537,7 +537,7 @@ test.group('Kafka Consumer', (group) => {
       brokers: ['asd'],
     })
 
-    const consumer = new Consumer(kafkajs, { groupId: 'test' })
+    const consumer = new ConsumerGroup(kafkajs, { groupId: 'test' })
     const subscribe = sinon.replace(consumer.consumer, 'subscribe', sinon.spy())
     const callback = sinon.spy()
     assert.doesNotReject(
@@ -565,7 +565,7 @@ test.group('Kafka Consumer', (group) => {
       brokers: ['asd'],
     })
 
-    const consumer = new Consumer(kafkajs, { groupId: 'test' })
+    const consumer = new ConsumerGroup(kafkajs, { groupId: 'test' })
     const subscribe = sinon.replace(consumer.consumer, 'subscribe', sinon.spy())
     const handleError = sinon.replace(consumer, 'handleError', sinon.fake())
     const callback = sinon.stub().throws()

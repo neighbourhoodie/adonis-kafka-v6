@@ -4,7 +4,7 @@ import { IgnitorFactory } from '@adonisjs/core/factories'
 import { Kafka } from '../src/index.ts'
 import sinon from 'sinon'
 import { Producer } from '../src/producer.ts'
-import { Consumer } from '../src/consumer.ts'
+import { ConsumerGroup } from '../src/consumer_group.ts'
 
 const BASE_URL = new URL('./tmp/', import.meta.url)
 
@@ -46,19 +46,19 @@ test.group('Kafka Provider', () => {
     const producer = kafkaService.createProducer('test')
     assert.instanceOf(producer, Producer)
 
-    const consumer = kafkaService.createConsumer({
+    const consumerGroup = kafkaService.createConsumerGroup({
       groupId: 'test',
       autoCommit: false,
     })
-    assert.instanceOf(consumer, Consumer)
+    assert.instanceOf(consumerGroup, ConsumerGroup)
 
-    const consumerStart = sinon.spy(consumer, 'start')
+    const consumerStart = sinon.spy(consumerGroup, 'start')
     const producerStart = sinon.spy(producer, 'start')
 
     const producerConnect = sinon.replace(producer.producer, 'connect', sinon.fake())
 
-    const consumerConnect = sinon.replace(consumer.consumer, 'connect', sinon.fake())
-    const consumerRun = sinon.replace(consumer.consumer, 'run', sinon.fake())
+    const consumerConnect = sinon.replace(consumerGroup.consumer, 'connect', sinon.fake())
+    const consumerRun = sinon.replace(consumerGroup.consumer, 'run', sinon.fake())
 
     let started = false
     await app.start(async () => {
@@ -77,15 +77,15 @@ test.group('Kafka Provider', () => {
     assert.equal(producerStart.callCount, 1)
     assert.equal(consumerStart.callCount, 1)
 
-    const consumerStop = sinon.spy(consumer, 'stop')
-    const consumerDisconnect = sinon.replace(consumer.consumer, 'disconnect', sinon.fake())
+    const consumerStop = sinon.spy(consumerGroup, 'stop')
+    const consumerDisconnect = sinon.replace(consumerGroup.consumer, 'disconnect', sinon.fake())
     const producerStop = sinon.spy(producer, 'stop')
     const producerDisconnect = sinon.replace(producer.producer, 'disconnect', sinon.fake())
 
-    const disconnect = sinon.spy(kafka, 'disconnect')
+    const stop = sinon.spy(kafka, 'stop')
 
     await app.terminate()
-    assert.isTrue(disconnect.called, 'kafka.disconnect called')
+    assert.isTrue(stop.called, 'kafka.stop called')
     assert.isTrue(consumerStop.called, 'consumer.stop called')
     assert.isTrue(producerStop.called, 'producer.stop called')
 
@@ -123,20 +123,20 @@ test.group('Kafka Provider', () => {
     assert.instanceOf(kafka, Kafka)
 
     const producer = kafka.createProducer('test')
-    const consumer = kafka.createConsumer({
+    const consumerGroup = kafka.createConsumerGroup({
       groupId: 'test',
       autoCommit: false,
     })
 
-    const consumerStop = sinon.spy(consumer, 'stop')
-    const consumerDisconnect = sinon.replace(consumer.consumer, 'disconnect', sinon.fake())
+    const consumerStop = sinon.spy(consumerGroup, 'stop')
+    const consumerDisconnect = sinon.replace(consumerGroup.consumer, 'disconnect', sinon.fake())
     const producerStop = sinon.spy(producer, 'stop')
     const producerDisconnect = sinon.replace(producer.producer, 'disconnect', sinon.fake())
 
-    const disconnect = sinon.spy(kafka, 'disconnect')
+    const stop = sinon.spy(kafka, 'stop')
 
     await app.terminate()
-    assert.isTrue(disconnect.called)
+    assert.isTrue(stop.called)
     assert.isTrue(consumerStop.called)
     assert.isTrue(producerStop.called)
 
