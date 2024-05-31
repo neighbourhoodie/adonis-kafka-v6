@@ -23,7 +23,7 @@ export type ConsumerGroupConfig = KafkaConsumerConfig &
 export type ConsumerSubscribeTopic = { topic: string; fromBeginning?: boolean }
 export type ConsumerSubscribeTopics = { topics: string[]; fromBeginning?: boolean }
 
-export type ConsumerPayload = KafkaMessage
+export type ConsumerPayload = Record<string, any>
 export type ConsumerCommitCallback = (commit: boolean) => Promise<void>
 export type ConsumerCallback = (
   payload: ConsumerPayload,
