@@ -3,7 +3,7 @@ import type { Logger } from '@adonisjs/core/logger'
 import { ApplicationService, KafkaConfig, KafkaContract } from '@adonisjs/core/types'
 
 import type { ProducerConfig, ConsumerGroupConfig } from './types.ts'
-import { Consumer } from './consumer.ts'
+import { ConsumerGroup } from './consumer_group.ts'
 import { Producer } from './producer.ts'
 import { defineConfig } from './define_config.ts'
 import { type KafkaLogLevel, toAdonisLoggerLevel, toKafkaLogLevel } from './logging.ts'
@@ -11,7 +11,7 @@ import { type KafkaLogLevel, toAdonisLoggerLevel, toKafkaLogLevel } from './logg
 export class Kafka implements KafkaContract {
   protected application!: ApplicationService
 
-  #consumers: Consumer[]
+  #consumerGroups: ConsumerGroup[]
   #producers: {
     [key: string]: Producer
   }
@@ -23,11 +23,11 @@ export class Kafka implements KafkaContract {
   constructor(config: KafkaConfig, logger: Logger) {
     this.#config = defineConfig(config)
     this.#logger = logger.child({ module: 'kafka' })
-    this.#consumers = []
+    this.#consumerGroups = []
     this.#producers = {}
   }
 
-  async start() {
+  async boot() {
     this.createKafka()
   }
 
@@ -42,21 +42,25 @@ export class Kafka implements KafkaContract {
     return producer
   }
 
-  createConsumer(config: ConsumerGroupConfig) {
+  createConsumerGroup(config: ConsumerGroupConfig) {
     // TODO: Assert that consumers have different groupId's
-    const consumer = new Consumer(this.#kafka, config)
+    const consumerGroup = new ConsumerGroup(this.#kafka, config)
 
-    this.#consumers.push(consumer)
+    this.#consumerGroups.push(consumerGroup)
 
-    return consumer
+    return consumerGroup
   }
 
-  get producers() {
-    return this.#producers
+  async startConsumerGroups() {
+    for (const consumerGroup of this.#consumerGroups) {
+      await consumerGroup.start()
+    }
   }
 
-  get consumers() {
-    return this.#consumers
+  async startProducers() {
+    for (const producer in this.#producers) {
+      await this.#producers[producer].start()
+    }
   }
 
   private getBrokers() {
@@ -94,9 +98,9 @@ export class Kafka implements KafkaContract {
     })
   }
 
-  async disconnect() {
-    for await (let consumer of this.#consumers) {
-      await consumer.stop()
+  async stop() {
+    for await (let consumerGroup of this.#consumerGroups) {
+      await consumerGroup.stop()
     }
 
     for (let producer in this.#producers) {

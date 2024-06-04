@@ -20,24 +20,18 @@ export default class KafkaProvider implements ContainerProviderContract {
 
   async boot() {
     const kafka = await this.app.container.make('kafka')
-    await kafka.start()
+    await kafka.boot()
   }
 
   // Has to be ready to make use of preloads:
   async ready() {
     const kafka = await this.app.container.make('kafka')
-
-    for (const producer in kafka.producers) {
-      await kafka.producers[producer].start()
-    }
-
-    for (const consumer of kafka.consumers) {
-      await consumer.start()
-    }
+    await kafka.startProducers()
+    await kafka.startConsumerGroups()
   }
 
   async shutdown() {
     const kafka = await this.app.container.make('kafka')
-    await kafka.disconnect()
+    await kafka.stop()
   }
 }
