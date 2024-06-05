@@ -1,7 +1,7 @@
 {
   "name": "@neighbourhoodie/adonis-kafka",
   "description": "Adonis v6 adapter for Kafka.js",
-  "homepage": "https://github.com/neighbourhoodie/adonis-kafka-v6"
+  "homepage": "https://github.com/neighbourhoodie/adonis-kafka-v6",
   "bugs": {
     "url": "https://github.com/neighbourhoodie/adonis-kafka-v6/issues"
   },
