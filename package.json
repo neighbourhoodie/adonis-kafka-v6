@@ -1,6 +1,17 @@
 {
   "name": "@neighbourhoodie/adonis-kafka",
-  "description": "",
+  "description": "Adonis v6 adapter for Kafka.js",
+  "homepage": "https://github.com/neighbourhoodie/adonis-kafka-v6"
+  "bugs": {
+    "url": "https://github.com/neighbourhoodie/adonis-kafka-v6/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/neighbourhoodie/adonis-kafka-v6.git"
+  },
+  "keywords": ["adonis", "kafka"],
+  "author": "The Neighbourhoodie Software GmbH & contributors",
+  "license": "MIT",
   "version": "0.3.2",
   "main": "build/index.js",
   "engines": {
@@ -33,9 +44,6 @@
     "version": "npm run build",
     "prepublishOnly": "npm run build"
   },
-  "keywords": [],
-  "author": "",
-  "license": "MIT",
   "devDependencies": {
     "@adonisjs/assembler": "^7.0.0",
     "@adonisjs/core": "^6.2.0",
