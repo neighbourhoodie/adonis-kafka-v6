@@ -3,11 +3,30 @@
 }}}
 import env from '#start/env'
 
+const kafkaSecurityProtocol = env.get('KAFKA_SECURITY_PROTOCOL', 'PLAIN')
+const useSSL = kafkaSecurityProtocol === 'SSL'
+const useSasl = env.get('KAFKA_SASL_MECHANISM') !== undefined
+
+const saslOptions = useSasl
+  ? {
+      mechanism: env.get('KAFKA_SASL_MECHANISM')?.toLowerCase(),
+      username: env.get('KAFKA_SASL_USERNAME'),
+      password: env.get('KAFKA_SASL_PASSWORD'),
+    }
+  : undefined
+
 const kafkaConfig = {
   brokers: env.get('KAFKA_BROKERS', 'localhost:9092'),
-  clientId: env.get('KAFKA_CLIENT_ID'),
+  ssl: useSSL,
+  sasl: saslOptions,
+  clientId: env.get('KAFKA_CLIENT_ID', 'local'),
+  timeouts: {
+    connection: env.get('KAFKA_CONNECTION_TIMEOUT'),
+    authentication: env.get('KAFKA_AUTHENTICATION_TIMEOUT'),
+    reauthentication: env.get('KAFKA_REAUTHENTICATION_TIMEOUT'),
+    request: env.get('KAFKA_REQUEST_TIMEOUT'),
+  },
   logLevel: env.get('KAFKA_LOG_LEVEL', env.get('LOG_LEVEL')),
 }
 
 export default kafkaConfig
-

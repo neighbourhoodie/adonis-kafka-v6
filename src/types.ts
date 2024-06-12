@@ -4,7 +4,8 @@ import type {
   ConsumerRunConfig as KafkaConsumerRunConfig,
   Message as KafkaMessage,
   EachMessagePayload as KafkaEachMessagePayload,
-  SASLOptions,
+  SASLOptions as KafkaSASLOptions,
+  OauthbearerProviderResponse as KafkaOauthbearerProviderResponse,
 } from 'kafkajs'
 
 import type tls from 'node:tls'
@@ -14,6 +15,23 @@ import type { ConsumerGroup } from './consumer_group.ts'
 import type { Producer } from './producer.ts'
 
 import { Kafka } from './index.ts'
+
+// AWS mechanism isn't currently well supported:
+type SASLAWSOption = { mechanism: 'aws' } & {
+  authorizationIdentity: string
+  accessKeyId: string
+  secretAccessKey: string
+  sessionToken?: string
+}
+
+// OAuth Bearer mechanism isn't currently well supported:
+type SASLOAuthOption = {
+  mechanism: 'oauthbearer'
+} & {
+  oauthBearerProvider: () => Promise<KafkaOauthbearerProviderResponse>
+}
+
+type SASLOptions = Exclude<KafkaSASLOptions, SASLAWSOption | SASLOAuthOption>
 
 export type ProducerConfig = KafkaProducerConfig
 
